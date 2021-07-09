@@ -1,0 +1,52 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-07-01 16:01:59
+ * @LastEditTime: 2021-07-01 20:03:21
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /study_ast/递归深入.html
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 规则复现用递归
+      const arr = [1, 2, [3, [4, 5], 6], 7, [8], 9]
+      // 方法1
+      function convert(arr) {
+        const result = []
+        arr.forEach((item) => {
+          console.log()
+          if (typeof item === 'number') {
+            result.push({
+              value: item
+            })
+          } else if (Array.isArray(item)) {
+            result.push({
+              children: convert(item)
+            })
+          }
+        })
+        return result
+      }
+      // 方法2
+      function convert2(item) {
+        if (typeof item === 'number') {
+          return {
+            value: item
+          }
+        } else if (Array.isArray(item)) {
+          return {
+            children: item.map((it) => convert(it))
+          }
+        }
+      }
+      console.log(convert(arr))
+    </script>
+  </body>
+</html>

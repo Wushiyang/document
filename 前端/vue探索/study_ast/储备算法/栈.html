@@ -1,0 +1,56 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-07-01 20:39:34
+ * @LastEditTime: 2021-07-02 09:29:48
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /study_ast/栈.html
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const str = '2[1[a]3[b]2[3[c]4[d]]]'
+      const yesStr = 'abbbcccddddcccddddabbbcccddddcccdddd'
+      function smartRepeat(template) {
+        let index = 0
+        let stack1 = [] // 数量栈
+        let stack2 = [] // 字符栈
+        let result = ''
+        while (index < template.length) {
+          const target = template.substring(index)
+          const numArr = target.match(/^\d+/)
+          const strArr = target.match(/^[a-zA-Z]+/)
+          if (numArr !== null) {
+            stack1.push(numArr[0])
+            index += numArr[0].length
+          } else if (target[0] === '[') {
+            stack2.push('')
+            index++
+          } else if (strArr !== null) {
+            stack2[stack2.length - 1] = strArr[0]
+            index += strArr[0].length
+          } else if (target[0] === ']') {
+            const multiple = stack1.pop()
+            const str = stack2.pop()
+            const len = stack2.length
+            index++
+            if (len > 0) {
+              stack2[len - 1] += str.repeat(multiple)
+            } else {
+              result = str.repeat(multiple)
+            }
+          }
+        }
+        return result
+      }
+      const result = smartRepeat(str)
+      console.log(result, result === yesStr)
+    </script>
+  </body>
+</html>

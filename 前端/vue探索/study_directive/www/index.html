@@ -1,0 +1,54 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-05-24 17:00:24
+ * @LastEditTime: 2021-07-09 10:07:02
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /study_ast/www/index.html
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="/xuni/bundle.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <h3 class="title" v-if="msg">{{word}}</h3>
+      <input type="text" v-model="word" />
+      <ul>
+        <li>A</li>
+        <li>B</li>
+        <li>C</li>
+      </ul>
+    </div>
+
+    <script>
+      const vm = new Vue({
+        el: '#app',
+        data: {
+          msg: 'John',
+          word: '测试',
+          obj: {
+            name: 'Tom',
+            year: 14
+          }
+        },
+        created() {
+          // console.log('created')
+          // setTimeout(() => {
+          //   this.msg = 'new John'
+          // }, 1000)
+        },
+        watch: {
+          msg(newVal, oldVal) {
+            console.log('watch到了,新值是', newVal, '旧值是', oldVal)
+          }
+        }
+      })
+      console.log(vm)
+    </script>
+  </body>
+</html>

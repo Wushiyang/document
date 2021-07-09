@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    // 试寻找字符串中连续重复次数最多的字符
+    const str = 'ababababababcccccccccccccdddddd'
+    const len = str.length
+    // 指针
+    let i = 0, j = 1
+    let maxRepeat = 0
+    let maxRepeatChar
+
+    // 当i还在范围内时则继续寻找
+    while (i < len) {
+      if (str[i] != str[j]) {
+        console.log('i和j相同', i, j, '字母', str[i], '重复了', j - i, '次')
+        if (j - i > maxRepeat) {
+          maxRepeat = j - i
+          maxRepeatChar = str[i]
+        }
+        i = j
+      }
+      j++
+    } 
+    console.log('最大重复次数的字符是', maxRepeatChar)
+  </script>
+</body>
+</html>

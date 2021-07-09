@@ -1,0 +1,70 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="/xuni/bundle.js"></script>
+  <!-- <script src="https://cdn.bootcdn.net/ajax/libs/mustache.js/4.1.0/mustache.js"></script> -->
+</head>
+<style>
+  .item>h1{
+    color: red;
+  }
+  .item>div{
+    color: blue;
+  }  
+</style>
+<body>
+  <div>
+    这是mustache首页
+  </div>
+  <ul id="list"></ul>
+  <script>
+    const ul = document.getElementById('list')
+    const li = `
+      {{#list}}
+        <li class="item">
+          <h1>我是{{name}},今年{{detail.year}}岁</h1>
+          <div>我的兴趣是：</div>
+          <ol>
+            {{#detail.hobbies}}
+              <li>{{.}}</li>
+            {{/detail.hobbies}}
+          </ol>
+        </li>
+      {{/list}}
+    `
+    // const li = '我爱{{somebody}}，{{somebody}}也爱我'
+    const list = [
+      {
+        name: 'John',
+        detail: {
+          year: 18,
+          hobbies: ['running', 'singing','swimming']
+        }
+      },
+      {
+        name: 'Tom',
+        detail: {
+          year: 14,
+          hobbies: ['running', 'singing','swimming']
+        }       
+      },
+      {
+        name: 'Alice',
+        detail: {
+          year: 16,
+          hobbies: ['cooking', 'reading','running']  
+        }
+      }
+    ]
+    // const htmlStr = Mustache.render(li, { list })
+    // console.log(htmlStr)    
+    // ul.innerHTML = htmlStr
+    const htmlStr = mustache.render(li, { list, somebody: '测试' })
+    console.log(htmlStr)
+    ul.innerHTML = htmlStr    
+  </script>
+</body>
+</html>
