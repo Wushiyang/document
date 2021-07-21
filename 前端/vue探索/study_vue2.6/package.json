@@ -1,19 +1,17 @@
 {
-  "name": "create_vue2",
+  "name": "study_vue2.6",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup --config rollup.config.js --watch"
+    "build": "rollup --config rollup.config.js",
+    "test:unit": ""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "rollup": "^2.53.0",
-    "rollup-plugin-typescript": "^1.0.1",
-    "tslib": "^2.3.0",
-    "typescript": "^4.3.5"
+    "rollup": "^2.53.2"
   }
 }
