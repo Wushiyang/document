@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "init": "karma init karma.conf.js"
+    "init": "karma init karma.conf.js",
+    "start": "karma start",
+    "run": "karma run"
   },
   "keywords": [],
   "author": "",
