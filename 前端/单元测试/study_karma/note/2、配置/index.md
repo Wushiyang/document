@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2021-07-22 11:11:35
- * @LastEditTime: 2021-07-26 17:34:54
+ * @LastEditTime: 2021-08-03 12:04:40
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /study_karma/note/一、配置/index.md
@@ -115,7 +115,26 @@ module.exports = function(config) {
     //   name: 'Service-Worker-Allowed',
     //   value: '/'
     // }]
-    customHeaders: undefined
+    customHeaders: undefined,
+
+    // 如果是true，则karma服务运行在其他的进程，控制台无任何输出，该服务可通过karma stop指令停止
+    // CLI: --detached
+    detached: false,
+
+    // 不读取文件的列表或模式
+    exclude: [],
+
+    // 开启和关闭运行空套件则失败。如果关闭则程序返回exit-code 0并警告
+    // CLI: --fail-on-empty-test-suite，--no-fail-on-empty-test-suite
+    failOnEmptyTestSuite: true
+
+    // 开启和关闭故意略过测试则失败，比如jasmine的fit()和xit()。用来阻止用于验证产品的测试的偶然关闭
+    // CLI: --fail-on-skipped-tests, --no-fail-on-skipped-tests
+    failOnSkippedTests: false，
+
+    // 开启或关闭测试失败则失败
+    // CLI: --fail-on-failing-test-suite, --no-fail-on-failing-test-suite
+    failOnFailingTestSuite: true
   })
 }
 ```

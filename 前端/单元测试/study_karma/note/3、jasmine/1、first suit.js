@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-26 19:21:40
- * @LastEditTime: 2021-07-27 20:15:14
+ * @LastEditTime: 2021-08-03 11:50:26
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /study_karma/note/3、jasmine/1、first suit.js
@@ -135,6 +135,7 @@
 //   })
 // })
 
+// ----------------------------------------------- Spy  -----------------------------------------------------
 // Spy命名空间
 // spyOn(Object, string)
 // 监视一个对象的某个属性,设置Object的string为Spy
@@ -146,36 +147,117 @@
 
 // Spy.calls命名空间
 // Spy.calls.any 返回是否这个监视函数被触发了
-describe('A spy', function () {
-  var foo,
-    bar = null
-  beforeEach(function () {
-    foo = {
-      setBar: function (value) {
-        bar = value
-      }
-    }
-    spyOn(foo, 'setBar')
-    foo.setBar(123)
-    foo.setBar(456, 'another param')
-  })
-  it('tracks that the spy was called', function () {
-    expect(foo.setBar).toHaveBeenCalled()
-  })
-  it('tracks that the spy was called x times', function () {
-    expect(foo.setBar).toHaveBeenCalledTimes(2)
-  })
-  it('tracks all the arguments of its calls', function () {
-    expect(foo.setBar).toHaveBeenCalledWith(123)
-    expect(foo.setBar).toHaveBeenCalledWith(456, 'another param')
+// describe('A spy', function () {
+//   var foo,
+//     bar = null
+//   beforeEach(function () {
+//     foo = {
+//       setBar: function (value) {
+//         bar = value
+//       }
+//     }
+//     spyOn(foo, 'setBar')
+//     foo.setBar(123)
+//     foo.setBar(456, 'another param')
+//   })
+//   it('tracks that the spy was called', function () {
+//     expect(foo.setBar).toHaveBeenCalled()
+//   })
+//   it('tracks that the spy was called x times', function () {
+//     expect(foo.setBar).toHaveBeenCalledTimes(2)
+//   })
+//   it('tracks all the arguments of its calls', function () {
+//     expect(foo.setBar).toHaveBeenCalledWith(123)
+//     expect(foo.setBar).toHaveBeenCalledWith(456, 'another param')
+//   })
+
+//   it('stops all execution on a function', function () {
+//     expect(bar).toBeNull()
+//   })
+//   it('tracks if it was called at all', function () {
+//     foo.setBar()
+//     console.log(foo.setBar.calls)
+//     expect(foo.setBar.calls.any()).toEqual(true)
+//   })
+// })
+
+// createSpy创建裸露spy
+// jasmine.createSpy(name: String, originalFn: Function)->Spy
+// name在失败的时候显示，originalFn是函数实现
+// describe('A spy, when created manually', function () {
+//   var whatAmI
+//   beforeEach(function () {
+//     whatAmI = jasmine.createSpy('whatAmI')
+//     whatAmI('I', 'am', 'a', 'spy')
+//   })
+//   it('tracks that the spy was called', function () {
+//     expect(whatAmI).toHaveBeenCalled()
+//   })
+// })
+// jasmine.createSpyObj创建一个对象，并有复数的Spy作为它的成员
+// jasmine.createSpyObj(baseName: String, methodNames: String | Array | Object, propertyNames: String | Array | Object)
+// baseName这个对象上的Spy的基本名字
+// methodNames方法名字
+// propertyNames属性名字
+// describe('Multiple spies, when created manually', function () {
+//   var tape
+
+//   beforeEach(function () {
+//     tape = jasmine.createSpyObj('tape', ['play', 'pause', 'stop', 'rewind'])
+//     tape.play()
+//     tape.pause()
+//     tape.rewind(0)
+//   })
+
+//   it('creates spies for each requested function', function () {
+//     // expect(tape.play).toBeDefined()
+//     // expect(tape.pause).toBeDefined()
+//     // expect(tape.stop).toBeDefined()
+//     // expect(tape.rewind).toBeDefined()
+//     expect(tape.play).toHaveBeenCalled()
+//     expect(tape.pause).toHaveBeenCalled()
+//     expect(tape.rewind).toHaveBeenCalled()
+//   })
+// })
+
+// ----------------------------------------------- any  -----------------------------------------------------
+
+// any用于非对称度量
+// jasmine.any(class)
+describe('jasmine.any', function () {
+  it('matches any value', function () {
+    expect({}).toEqual(jasmine.any(Object))
+    expect(12).toEqual(jasmine.any(Number))
   })
 
-  it('stops all execution on a function', function () {
-    expect(bar).toBeNull()
+  describe('when used with a spy', function () {
+    it('is useful for comparing arguments', function () {
+      var foo = jasmine.createSpy('foo')
+      foo(12, function () {
+        return true
+      })
+
+      expect(foo).toHaveBeenCalledWith(
+        jasmine.any(Number),
+        jasmine.any(Function)
+      )
+    })
   })
-  it('tracks if it was called at all', function () {
-    foo.setBar()
-    console.log(foo.setBar.calls)
-    expect(foo.setBar.calls.any()).toEqual(true)
+})
+// jasmine.anything() 代表任意值
+describe('jasmine.anything', function () {
+  it('matches anything', function () {
+    expect(1).toEqual(jasmine.anything())
+  })
+
+  describe('when used with a spy', function () {
+    it('is useful when the argument can be ignored', function () {
+      var foo = jasmine.createSpy('foo')
+      foo(12, function () {
+        return false
+      })
+
+      expect(foo).toHaveBeenCalledWith(12, jasmine.anything())
+    })
   })
 })
