@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2021-07-22 11:11:35
- * @LastEditTime: 2021-08-03 12:04:40
+ * @LastEditTime: 2021-08-04 16:09:34
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /study_karma/note/一、配置/index.md
@@ -135,6 +135,21 @@ module.exports = function(config) {
     // 开启或关闭测试失败则失败
     // CLI: --fail-on-failing-test-suite, --no-fail-on-failing-test-suite
     failOnFailingTestSuite: true
+
+    // 决定了哪些文件被浏览器读取，被karma观察和服务
+    // 数组子项是String或{ pattern, type, watched, included, served, nocache }
+    // pattern string，没有默认值，是必须的，pattern被使用去匹配文件
+    // type string，默认是基于当前文件的后缀名的，如果匹配失败则默认是js，可能的值有css、html、js、module、dom
+    // watched boolean，默认是true，如果autoWatch被设置为true，所有watched被设为true的文件都会被观察变化
+    // included boolean，默认是true，决定文件是否能被包含在<script>标签里，如果是false，则只能手动加载，比如使用RequreJS
+    // served boolean，默认值是true，决定文件是否可被karma服务使用
+    // nocache boolean，默认是false，决定是否每次都被karma服务重新读取而不使用缓存
+    // pattern的规则相对路径都是基于basePath的，而basePath的相对路径是基于配置文件的位置，pattern使用glob规则（里面包含minimatch规则）
+    // 部分细则没细看，详见http://karma-runner.github.io/6.3/config/files.html
+    files: [],
+
+
+    forceJSONP: false
   })
 }
 ```
