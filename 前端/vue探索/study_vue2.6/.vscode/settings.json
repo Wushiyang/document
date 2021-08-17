@@ -1,0 +1,24 @@
+{
+  "editor.formatOnSave": true,
+  "[vue]": {
+    "editor.defaultFormatter": "svipas.prettier-plus"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "svipas.prettier-plus"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "svipas.prettier-plus"
+  },
+  "prettier.eslintIntegration": true,
+  "prettier.printWidth": 160,
+  "prettier.tabWidth": 2,
+  // 头部注释
+  "fileheader.customMade": {
+    // 头部注释默认字段
+    "Author": "Wushiyang",
+    "LastEditors": "Wushiyang", // 设置后，保存文件更改默认更新最后编辑人
+    "Date": "Do not edit",
+    "LastEditTime": "Do not edit",
+    "Description": "请描述该文件"
+  }
+}

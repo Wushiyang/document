@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup --config rollup.config.js",
+    "build": "rollup --config rollup.config.ts",
+    "watch": "rollup -w -c rollup.config.ts",
     "test:unit": ""
   },
+  "typings": "types/index.d.ts",
   "keywords": [],
   "author": "",
   "license": "ISC",

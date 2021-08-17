@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2021-07-27 20:30:55
- * @LastEditTime: 2021-07-27 20:59:44
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2021-08-17 15:52:20
+ * @LastEditors: Wushiyang
  * @Description: In User Settings Edit
  * @FilePath: /study_vue2.6/readme.md
 -->
@@ -22,5 +22,7 @@ eslint 配置文件 ./eslint.js ./eslintignore
 typescript-eslint 配置文件 ./tsconfig.eslint.json
 
 ### 3、rollup rollup-plugin-babel rollup-plugin-commonjs rollup-plugin-eslint rollup-plugin-node-resolve rollup-plugin-typescript2 @babel/preset-env @babel/core
+
+rollup 配置文件 ./rollup.config.ts
 
 http://blog.maihaoche.com/typescript-rollup-da-jian-gong-ju-ku/

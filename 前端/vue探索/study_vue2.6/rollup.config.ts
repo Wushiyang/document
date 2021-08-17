@@ -1,14 +1,14 @@
 /*
  * @Author: your name
  * @Date: 2021-07-21 10:39:31
- * @LastEditTime: 2021-07-27 20:50:57
+ * @LastEditTime: 2021-08-16 20:59:22
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /study_vue2.6/rollup.config.js
  */
 
 import path from 'path'
-import { RollupOptions } from 'rollup'
+// import { RollupOptions } from 'rollup'
 import rollupTypescript from 'rollup-plugin-typescript2'
 import babel from 'rollup-plugin-babel'
 import resolve from 'rollup-plugin-node-resolve'
@@ -20,11 +20,11 @@ import pkg from './package.json'
 
 const paths = {
   input: path.join(__dirname, '/src/index.ts'),
-  output: path.join(__dirname, '/lib')
+  output: path.join(__dirname, '/dist')
 }
 
 // rollup 配置项
-const rollupConfig: RollupOptions = {
+const rollupConfig = {
   input: paths.input,
   output: [
     // 输出 commonjs 规范的代码
