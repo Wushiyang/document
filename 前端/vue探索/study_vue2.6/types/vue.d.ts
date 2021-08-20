@@ -2,10 +2,10 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-08-17 17:14:21
- * @LastEditTime: 2021-08-18 17:52:35
+ * @LastEditTime: 2021-08-20 10:40:08
  * @Description: vue声明文件
  */
-import { componentsOptions, ThisTypedComponentOptionsWithArrayProps, ThisTypedComponentOptionsWithRecordProps } from './options'
+import { componentsOptions } from './options'
 import { VNode, VNodeData, NormalizedScopedSlot } from './vnode'
 export interface Vue {
   readonly $el: Element
@@ -35,12 +35,12 @@ export type CombinedVueInstance<Instance extends Vue, Data, Methods, Computed, P
 export interface VueConfiguration {}
 
 export interface VueConstructor<V extends Vue = Vue> {
-  new <Data = object, Methods = object, Computed = object, PropNames extends string = never>(
-    options?: ThisTypedComponentOptionsWithArrayProps<V, Data, Methods, Computed, PropNames>
-  ): CombinedVueInstance<V, Data, Methods, Computed, Record<PropNames, any>>
-  new <Data = object, Methods = object, Computed = object, Props = object>(
-    options?: ThisTypedComponentOptionsWithRecordProps<V, Data, Methods, Computed, Props>
-  ): CombinedVueInstance<V, Data, Methods, Computed, Record<keyof Props, any>>
+  // new <Data = object, Methods = object, Computed = object, PropNames extends string = never>(
+  //   options?: ThisTypedComponentOptionsWithArrayProps<V, Data, Methods, Computed, PropNames>
+  // ): CombinedVueInstance<V, Data, Methods, Computed, Record<PropNames, any>>
+  // new <Data = object, Methods = object, Computed = object, Props = object>(
+  //   options?: ThisTypedComponentOptionsWithRecordProps<V, Data, Methods, Computed, Props>
+  // ): CombinedVueInstance<V, Data, Methods, Computed, Record<keyof Props, any>>
 
   config: VueConfiguration
 }

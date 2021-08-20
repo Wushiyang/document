@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-08-17 16:13:34
- * @LastEditTime: 2021-08-17 20:57:14
+ * @LastEditTime: 2021-08-20 17:07:39
  * @Description: vnode模块声明文件
  */
 import { Vue } from './vue'
@@ -13,6 +13,9 @@ interface ScopedSlotReturenArray extends Array<ScopedSlotReturnValue> {}
 // 在Vue2.6后确保作用域插槽(scoped slot)返回Vnode数组
 export type NormalizedScopedSlot = (props: any) => ScopedSlotChildren
 export type ScopedSlotChildren = VNode[] | undefined
+
+export type VNodeChildren = VNodeChildrenArrayContents | [ScopedSlot] | string | boolean | null | undefined
+export interface VNodeChildrenArrayContents extends Array<VNodeChildren | VNode> {}
 
 export interface VNode {
   tag?: string
@@ -40,7 +43,7 @@ export interface VNodeComponentOptions {
   tag?: string
 }
 
-export interface VNodeData {
+declare interface VNodeData {
   key?: string | number
   slot?: string
   scopedSlots?: { [key: string]: ScopedSlot | undefined }
