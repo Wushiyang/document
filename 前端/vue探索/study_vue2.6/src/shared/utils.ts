@@ -2,11 +2,14 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-08-16 20:59:42
- * @LastEditTime: 2021-08-17 15:39:34
+ * @LastEditTime: 2021-08-25 16:52:28
  * @Description: 请描述该文件
  */
 export const emptyObject = Object.freeze({})
 
+export function isOfType<T>(v: unknown, test?: string): v is T {
+  return test ? v[test] !== undefined && v[test] !== null : isDef(v)
+}
 export function isUndef(v: any): boolean {
   return v === undefined || v === null
 }
@@ -72,3 +75,7 @@ export const hadOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwn(obj: Object | Array<any>, key: string): boolean {
   return hadOwnProperty.call(obj, key)
 }
+
+export function noop(a?: any, b?: any, c?: any) {}
+export const no = (a?: any, b?: any, c?: any) => false
+export const identiy = (_: any) => _
