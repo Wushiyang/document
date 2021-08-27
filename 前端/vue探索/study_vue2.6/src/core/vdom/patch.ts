@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-08-23 11:56:58
- * @LastEditTime: 2021-08-26 20:50:42
+ * @LastEditTime: 2021-08-27 17:56:13
  * @Description: patch方法
 //  */
 import { warn, isDef, isOfType, isRegExp, isTrue, isUndef, makeMap } from '../utils/index'
@@ -11,6 +11,7 @@ import { isTextInputType } from '../../platforms/web/util/element'
 import config from '../config'
 import { Component } from '../instance'
 import { registerRef } from './modules/ref'
+import { nodeOps } from '../../platforms/web/runtime/node-ops'
 
 const enum PatchHook {
   create = 'create',
@@ -50,7 +51,7 @@ function createKeyToOldIndex(children, beginIdx: number, endIndex: number): obje
 }
 
 // 创建patch函数
-export function createPatchFunction(backend: { modules: Array<{ [key in PatchHook]?: Function }>; nodeOps: { [key: string]: Function } }) {
+export function createPatchFunction(backend: { modules: Array<{ [key in PatchHook]?: Function }>; nodeOps: typeof nodeOps }) {
   let i: number, j: number
   const cbs: { [key in PatchHook]?: Array<Function> } = {}
   const { modules, nodeOps } = backend
@@ -77,9 +78,7 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
 
   function removeNode(el) {
     const parent = nodeOps.parentNode(el)
-    if (isDef(parent)) {
-      nodeOps.removeChild(parent, el)
-    }
+    isOfType<Node>(parent) && nodeOps.removeChild(parent, el)
   }
 
   function isUnknownElement(vnode: VNode, inVPre: boolean) {
@@ -99,6 +98,7 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
   let createElmInVPre = 0
   function createElm(vnode?: VNode, insertedVnodeQueue?, parentElm?, refElm?, nested?, ownerArray?: VNode[], index?) {
     if (isDef(vnode.elm && isDef(ownerArray))) {
+      // 这个vnode用在预渲染
       vnode = ownerArray[index] = VNode.cloneVNode(vnode)
     }
     vnode.isRootInsert = !nested // 用于过度进入检测
@@ -109,6 +109,7 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
     const tag = vnode.tag
 
     if (isDef(tag)) {
+      // 元素节点处理
       if (process.env.NODE_ENV !== 'production') {
         if (data && data.pre) {
           createElmInVPre++
@@ -124,6 +125,29 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
           )
         }
       }
+      // vue源码里这里是对weex环境的处理
+      const __WEEX = false
+      if (__WEEX) {
+        // weex环境处理
+      } else {
+        createChildren(vnode, children, insertedVnodeQueue)
+        if (isDef(data)) {
+          invokeCreateHooks(vnode, insertedVnodeQueue)
+        }
+        insert(parentElm, vnode.elm, refElm)
+
+        if (process.env.NODE_ENV !== 'production' && data && data.pre) {
+          createElmInVPre--
+        }
+      }
+    } else if (isTrue(vnode.isComment)) {
+      // 注释节点处理
+      vnode.elm = nodeOps.createComment(vnode.text)
+      insert(parentElm, vnode.elm, refElm)
+    } else {
+      // 文本节点处理
+      vnode.elm = nodeOps.createTextNode(vnode.text)
+      insert(parentElm, vnode.elm, refElm)
     }
   }
 
@@ -140,7 +164,7 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
         initComponent(vnode, insertedVnodeQueue)
         isOfType<Node>(vnode.elm) && insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReacttivated)) {
-          reactiveComponent(vnode, insertedVnodeQueue, parentElm, refElm)
+          reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
         }
         return true
       }
@@ -167,9 +191,16 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
     }
   }
 
-  function reactiveComponent(vnode: VNode, insertedVnodeQueue, parentElm: Node, refElm: Node) {}
+  function reactivateComponent(vnode: VNode, insertedVnodeQueue, parentElm: Node, refElm: Node) {}
 
-  function insert(parent: Node, elm: Node, ref) {}
+  // 插入节点操作
+  function insert(parent: Node, elm: Node, ref?: Node) {
+    if (nodeOps.parentNode(ref) === parent) {
+      nodeOps.insertBefore(parent, elm, ref)
+    } else {
+      nodeOps.appendChild(parent, elm)
+    }
+  }
 
   function createChildren(vnode: VNode, children, insertedVnodeQueue) {}
 
@@ -223,7 +254,7 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
 
   function assertNodeMatch(node, vnode, inVPre) {}
 
-  return function patch(oldVnode: VNode, vnode: VNode, hydrating: boolean, removeOnly: boolean) {
+  return function patch(oldVnode: VNode, vnode?: VNode, hydrating?: boolean, removeOnly?: boolean) {
     // 如果新节点不存在且老节点存在，则触发invokeDestroyHook销毁钩子并结束patch
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
@@ -231,7 +262,7 @@ export function createPatchFunction(backend: { modules: Array<{ [key in PatchHoo
     }
 
     let isInitialPatch = false // 是否
-    const insertedVnodeQueue = []
+    const insertedVnodeQueue = [].
 
     if (isUndef(oldVnode)) {
       isInitialPatch = true
