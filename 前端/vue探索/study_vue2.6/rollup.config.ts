@@ -1,8 +1,8 @@
 /*
  * @Author: your name
  * @Date: 2021-07-21 10:39:31
- * @LastEditTime: 2021-08-16 20:59:22
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2021-09-02 17:12:08
+ * @LastEditors: Wushiyang
  * @Description: In User Settings Edit
  * @FilePath: /study_vue2.6/rollup.config.js
  */
