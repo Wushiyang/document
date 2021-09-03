@@ -2,11 +2,13 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:13:13
- * @LastEditTime: 2021-09-02 17:12:21
+ * @LastEditTime: 2021-09-03 16:13:54
  * @Description: dom操作
  */
 import { VNode } from '../runtime-core'
 import { namespaceMap } from '../shared'
+
+export type nodeOps = typeof nodeOps
 
 export const nodeOps = {
   // 创建dom元素
@@ -30,15 +32,15 @@ export const nodeOps = {
     return document.createComment(text)
   },
   // 在节点前插入节点
-  insertBefore(parentNode: Node, newNode: Node, referenceNode: Node) {
+  insertBefore(parentNode: Node, newNode: Node, referenceNode: Node): void {
     parentNode.insertBefore(newNode, referenceNode)
   },
   // 移除子节点
-  removeChild(node: Node, child: Node) {
+  removeChild(node: Node, child: Node): void {
     node.removeChild(child)
   },
   // 添加子节点
-  appendChild(node: Node, child: Node) {
+  appendChild(node: Node, child: Node): void {
     node.appendChild(child)
   },
   // 获取父节点
@@ -54,11 +56,11 @@ export const nodeOps = {
     return node.tagName
   },
   // 设置节点的textContent
-  setTextContent(node: Node, text: string) {
+  setTextContent(node: Node, text: string): void {
     node.textContent = text
   },
   // 设置元素的作用域样式
-  setStyleScoped(node: Element, scopedId: string) {
+  setStyleScoped(node: Element, scopedId: string): void {
     node.setAttribute(scopedId, '')
   }
 }

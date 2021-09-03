@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-02 20:51:32
+ * @LastEditTime: 2021-09-03 16:03:50
  * @Description: 请描述该文件
  */
 
@@ -19,7 +19,7 @@ export class VNode {
   componentOptions: VNodeComponentOptions | null
 
   isAsyncPlaceholder: boolean
-  asyncFactory: Function
+  asyncFactory: () => void
 
   constructor(
     tag?: string | null,
@@ -29,7 +29,7 @@ export class VNode {
     elm?: Node | null,
     context?: Component | null,
     componentOptions?: VNodeComponentOptions | null,
-    asyncFactory?: Function | null
+    asyncFactory?: () => void | null
   ) {
     this.tag = tag
     this.data = data

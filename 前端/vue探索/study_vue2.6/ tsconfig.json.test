@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "lib": ["dom", "esnext"],
-    "removeComments": false,
+    "removeComments": true,
     "declaration": true,
     "sourceMap": true,
     "strict": true,
@@ -12,6 +12,7 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "strictNullChecks": true,
     "paths": {
       "@/*": ["src/*"]
     }

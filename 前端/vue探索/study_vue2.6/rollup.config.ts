@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-21 10:39:31
- * @LastEditTime: 2021-09-02 17:12:08
+ * @LastEditTime: 2021-09-03 16:51:19
  * @LastEditors: Wushiyang
  * @Description: In User Settings Edit
  * @FilePath: /study_vue2.6/rollup.config.js
@@ -46,7 +46,7 @@ const rollupConfig = {
     // 验证导入的文件
     eslint({
       throwOnError: true, // lint 结果有错误将会抛出异常
-      throwOnWarning: true,
+      throwOnWarning: false,
       include: ['src/**/*.ts'],
       exclude: ['node_modules/**', 'lib/**', '*.js']
     }),
@@ -61,7 +61,9 @@ const rollupConfig = {
         moduleDirectory: 'node_modules'
       }
     }),
-    rollupTypescript(),
+    rollupTypescript({
+      rollupCommonJSResolveHack: true
+    }),
     babel({
       runtimeHelpers: true,
       // 只转换源代码，不运行外部依赖
