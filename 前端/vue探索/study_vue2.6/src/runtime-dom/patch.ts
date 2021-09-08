@@ -2,11 +2,11 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-03 16:15:42
+ * @LastEditTime: 2021-09-08 15:48:39
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
-import { VNode } from '../runtime-core/index'
+import { VNode } from '@/runtime-core'
 
 const enum PatchHook {
   create = 'create',

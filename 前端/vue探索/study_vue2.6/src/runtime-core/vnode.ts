@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-03 16:03:50
+ * @LastEditTime: 2021-09-08 15:37:51
  * @Description: 请描述该文件
  */
 
@@ -19,17 +19,17 @@ export class VNode {
   componentOptions: VNodeComponentOptions | null
 
   isAsyncPlaceholder: boolean
-  asyncFactory: () => void
+  asyncFactory: (() => void) | null
 
   constructor(
-    tag?: string | null,
-    data?: VNodeData | null,
-    children?: Array<VNode> | null,
-    text?: string | null,
-    elm?: Node | null,
-    context?: Component | null,
-    componentOptions?: VNodeComponentOptions | null,
-    asyncFactory?: () => void | null
+    tag: string | null = null,
+    data: VNodeData | null = null,
+    children: Array<VNode> | null = null,
+    text: string | null = null,
+    elm: Node | null = null,
+    context: Component | null = null,
+    componentOptions: VNodeComponentOptions | null = null,
+    asyncFactory: (() => void) | null = null
   ) {
     this.tag = tag
     this.data = data
@@ -39,12 +39,14 @@ export class VNode {
     this.context = context
     this.componentOptions = componentOptions
     this.asyncFactory = asyncFactory
+    this.key = null
+    this.isAsyncPlaceholder = false
   }
 }
 
 export interface VNodeData {
-  key?: string | number | null
-  slot?: string | null
-  ref?: string | null
-  attrs?: { [key: string]: string } | null
+  key?: string | number
+  slot?: string
+  ref?: string
+  attrs?: { [key: string]: string }
 }

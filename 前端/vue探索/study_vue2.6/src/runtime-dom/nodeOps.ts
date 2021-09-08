@@ -2,11 +2,11 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:13:13
- * @LastEditTime: 2021-09-03 16:13:54
+ * @LastEditTime: 2021-09-08 15:49:08
  * @Description: dom操作
  */
-import { VNode } from '../runtime-core'
-import { namespaceMap } from '../shared'
+import { VNode } from '@/runtime-core'
+import { namespaceMap } from '@/shared'
 
 export type nodeOps = typeof nodeOps
 

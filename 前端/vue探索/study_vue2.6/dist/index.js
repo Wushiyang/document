@@ -4,11 +4,43 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-03 16:03:50
+ * @LastEditTime: 2021-09-08 11:51:39
  * @Description: 请描述该文件
  */
 var VNode = function () {
   function VNode(tag, data, children, text, elm, context, componentOptions, asyncFactory) {
+    if (tag === void 0) {
+      tag = null;
+    }
+
+    if (data === void 0) {
+      data = null;
+    }
+
+    if (children === void 0) {
+      children = null;
+    }
+
+    if (text === void 0) {
+      text = null;
+    }
+
+    if (elm === void 0) {
+      elm = null;
+    }
+
+    if (context === void 0) {
+      context = null;
+    }
+
+    if (componentOptions === void 0) {
+      componentOptions = null;
+    }
+
+    if (asyncFactory === void 0) {
+      asyncFactory = null;
+    }
+
     this.tag = tag;
     this.data = data;
     this.children = children;
@@ -89,13 +121,6 @@ var nodeOps = {
   }
 };
 
-/*
- * @Author: Wushiyang
- * @LastEditors: Wushiyang
- * @Date: 2021-09-02 20:52:18
- * @LastEditTime: 2021-09-03 15:58:34
- * @Description: 请描述该文件
- */
 var div = document.createElement('div');
 var node = new VNode(nodeOps.tagName(div).toLowerCase(), {}, [], undefined, div);
 console.log(node);
