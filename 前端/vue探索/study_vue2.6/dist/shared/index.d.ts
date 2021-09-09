@@ -1,1 +1,0 @@
-export { namespaceMap } from './element';

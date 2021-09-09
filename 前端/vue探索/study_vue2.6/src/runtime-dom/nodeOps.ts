@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:13:13
- * @LastEditTime: 2021-09-08 15:49:08
+ * @LastEditTime: 2021-09-09 10:37:55
  * @Description: dom操作
  */
 import { VNode } from '@/runtime-core'
@@ -36,19 +36,19 @@ export const nodeOps = {
     parentNode.insertBefore(newNode, referenceNode)
   },
   // 移除子节点
-  removeChild(node: Node, child: Node): void {
-    node.removeChild(child)
+  removeChild(parentnode: ParentNode, child: Node): void {
+    parentnode.removeChild(child)
   },
   // 添加子节点
   appendChild(node: Node, child: Node): void {
     node.appendChild(child)
   },
   // 获取父节点
-  parentNode(node: Node): Node | void {
+  parentNode(node: Node): ParentNode | null {
     return node.parentNode
   },
   // 获取下一个兄弟节点
-  nextSibling(node: Node): Node | void {
+  nextSibling(node: Node): ChildNode | null {
     return node.nextSibling
   },
   // 获取元素标签名

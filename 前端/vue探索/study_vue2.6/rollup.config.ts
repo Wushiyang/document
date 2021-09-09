@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-21 10:39:31
- * @LastEditTime: 2021-09-03 16:51:19
+ * @LastEditTime: 2021-09-09 11:05:56
  * @LastEditors: Wushiyang
  * @Description: In User Settings Edit
  * @FilePath: /study_vue2.6/rollup.config.js
@@ -51,26 +51,26 @@ const rollupConfig = {
       exclude: ['node_modules/**', 'lib/**', '*.js']
     }),
 
-    // 使得 rollup 支持 commonjs 规范，识别 commonjs 规范的依赖
-    commonjs(),
+    // // 使得 rollup 支持 commonjs 规范，识别 commonjs 规范的依赖
+    // commonjs(),
 
-    // 配合 commnjs 解析第三方模块
-    resolve({
-      // 将自定义选项传递给解析插件
-      customResolveOptions: {
-        moduleDirectory: 'node_modules'
-      }
-    }),
+    // // 配合 commnjs 解析第三方模块
+    // resolve({
+    //   // 将自定义选项传递给解析插件
+    //   customResolveOptions: {
+    //     moduleDirectory: 'node_modules'
+    //   }
+    // }),
     rollupTypescript({
-      rollupCommonJSResolveHack: true
-    }),
-    babel({
-      runtimeHelpers: true,
-      // 只转换源代码，不运行外部依赖
-      exclude: 'node_modules/**',
-      // babel 默认不支持 ts 需要手动添加
-      extensions: [...DEFAULT_EXTENSIONS, '.ts']
+      // rollupCommonJSResolveHack: true
     })
+    // babel({
+    //   runtimeHelpers: true,
+    //   // 只转换源代码，不运行外部依赖
+    //   exclude: 'node_modules/**',
+    //   // babel 默认不支持 ts 需要手动添加
+    //   extensions: [...DEFAULT_EXTENSIONS, '.ts']
+    // })
   ]
 }
 
