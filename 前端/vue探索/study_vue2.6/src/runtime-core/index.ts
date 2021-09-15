@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:23:55
- * @LastEditTime: 2021-09-09 20:58:37
+ * @LastEditTime: 2021-09-15 16:30:08
  * @Description: 运行时核心
  */
 
@@ -39,6 +39,7 @@ interface ComponentOptions {
 
   // private
   _componentTag?: string
+  _scopeId?: string
 }
 
 export { config, Vue, Component, VNode, createBaseVNode, cloneVNode, VNodeComponentOptions }

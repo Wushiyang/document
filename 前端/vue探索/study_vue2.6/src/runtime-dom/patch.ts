@@ -2,12 +2,12 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-09 20:58:43
+ * @LastEditTime: 2021-09-15 17:55:45
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
 import { createBaseVNode, VNode, cloneVNode, config } from '@/runtime-core'
-import { warn } from '@/shared'
+import { warn, isOfType } from '@/shared'
 
 const enum PatchHook {
   create = 'create',
@@ -99,7 +99,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   let creatingElmInVPre = 0
 
   // 创建元素
-  function createElm(vnode: VNode, insertedVnodeQueue, parentElm, refElm, nested, ownerArray, index) {
+  function createElm(vnode: VNode, insertedVnodeQueue, parentElm: Element, refElm, nested, ownerArray, index) {
     if (vnode.elm && ownerArray) {
       // This vnode was used in a previous render!
       // now it's used as a new node, overwriting its elm would cause
@@ -152,6 +152,62 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     } else {
       vnode.elm = nodeOps.createTextNode(vnode.text + '')
       insert(parentElm, vnode.elm, refElm)
+    }
+  }
+
+  // 创建子节点，如果children是虚拟节点数组，则以vnode.elm为父节点，children列表内虚拟节点为子节点创建节点；否则如果vnode.text为字符串或数字，则以vnode.elm为父节点，vnode.text的文本节点为子节点创建节点
+  function createChildren(vnode: VNode, children: Array<VNode> | null, insertedVnodeQueue) {
+    if (isOfType<Element>(vnode.elm, 'setAttribute')) {
+      if (children) {
+        if (process.env.NODE_ENV !== 'production') {
+          checkDuplicateKeys(children)
+        }
+        for (let i = 0; i < children.length; ++i) {
+          createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i)
+        }
+      } else if (vnode.text) {
+        nodeOps.appendChild(vnode.elm, nodeOps.createTextNode(String(vnode.text)))
+      }
+    }
+  }
+
+  // 检查是否创建了重复的key，并在内部建映射用于检索存在
+  function checkDuplicateKeys(children: Array<VNode>) {
+    const seenKeys = {}
+    for (let i = 0; i < children.length; i++) {
+      const vnode = children[i]
+      const key = vnode.key
+      if (key) {
+        if (seenKeys[key] && vnode.context) {
+          warn(`Duplicate keys detected: '${key}'. This may cause an update error.`, vnode.context)
+        } else {
+          seenKeys[key] = true
+        }
+      }
+    }
+  }
+
+  // 设置 scope id 属性给scoped CSS
+  function setScope(vnode: VNode) {
+    let i
+    if (isOfType<Element>(vnode.elm, 'setAttribute')) {
+      // fnScopeId存在则在该虚拟节点绑定的节点上附加scope id
+      if (vnode.fnScopeId) {
+        nodeOps.setStyleScoped(vnode.elm, vnode.fnScopeId)
+      } else {
+        // 如果不存在，则从该节点的context上找scope id附加上，并循环向父层添加scope id
+        let ancetor = vnode
+        while (ancetor) {
+          if (ancetor.context && ancetor.context.$options._scopeId) {
+            nodeOps.setStyleScoped(vnode.elm, ancetor.context.$options._scopeId)
+          }
+          ancetor.parent && (ancetor = ancetor.parent)
+        }
+      }
+      // TODO: activeInstance从外部导进来的,逻辑先省略
+      // if (activeInstance) {
+
+      // }
     }
   }
 

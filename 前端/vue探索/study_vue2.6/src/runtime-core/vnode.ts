@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-09 16:16:02
+ * @LastEditTime: 2021-09-15 16:37:33
  * @Description: 请描述该文件
  */
 
@@ -13,7 +13,7 @@ export interface VNode {
   data: VNodeData | null
   children: Array<VNode> | null
   text: string | null
-  elm: Node | null
+  elm: Element | Node | null
   ns: string | null
   context: Component | null
   key: string | number | null
