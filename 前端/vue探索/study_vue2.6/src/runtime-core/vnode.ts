@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-15 16:37:33
+ * @LastEditTime: 2021-09-18 16:52:16
  * @Description: 请描述该文件
  */
 
@@ -32,6 +32,21 @@ export interface VNode {
   fnContext: Component | null
   fnOptions: Component | null
   fnScopeId: string | null
+}
+
+export interface VNodeWithData {
+  tag: string
+  data: VNodeData
+  children: Array<VNode> | null
+  text: null
+  elm: Element | Node | null
+  ns: string | null
+  context: Component
+  key: string | number | null
+  componentOptions: VNodeComponentOptions | null
+  componentInstance: Component | null
+  parent: VNodeWithData | null
+  isRootInsert: boolean
 }
 
 export const createBaseVNode = (
@@ -107,6 +122,7 @@ export interface VNodeData {
   attrs?: { [key: string]: string }
   pre?: boolean
   keepAlive?: boolean
-  hook?: { [key: string]: (vnode: VNode, hydrating: boolean) => void }
+  hook?: { [key: string]: (a: unknown, b: unknown) => void }
   pendingInsert?: unknown
+  transition?: Record<string, unknown>
 }

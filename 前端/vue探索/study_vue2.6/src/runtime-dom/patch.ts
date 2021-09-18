@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-15 17:55:45
+ * @LastEditTime: 2021-09-18 18:00:45
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
@@ -17,6 +17,8 @@ const enum PatchHook {
   destroy = 'destroy'
 }
 const hooks = [PatchHook.create, PatchHook.activate, PatchHook.update, PatchHook.remove, PatchHook.destroy]
+
+export const emptyNode = createBaseVNode('', {}, [])
 
 // 判断同一个虚拟节点
 function sameVNode(a: VNode, b: VNode): boolean {
@@ -43,17 +45,21 @@ function createKeyToOldIdx(children: VNode[], beginIdx: number, endIdx: number):
   return map
 }
 
-export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHook]?: () => void }>; nodeOps: nodeOps }): (() => void) => {
+export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHook]?: (a: unknown, b: unknown) => void }>; nodeOps: nodeOps }): (() => void) => {
   let i: number, j: number
   const { modules, nodeOps } = backend
-  const cbs = {}
+
+  const cbs: {
+    [key in PatchHook]?: Array<(a: unknown, b: unknown) => void>
+  } = {}
   // 钩子到cbs
   for (i = 0; i < hooks.length; i++) {
-    cbs[hooks[i]] = []
+    const hook = hooks[i]
+    const cbis: Array<(a: unknown, b: unknown) => void> = (cbs[hook] = [])
     for (j = 0; i < modules.length; j++) {
       const hookFn = modules[j][hooks[i]]
       if (hookFn) {
-        cbs[hooks[i]].push(hookFn)
+        cbis.push(hookFn)
       }
     }
   }
@@ -155,6 +161,37 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     }
   }
 
+  // 重新激活组件，用于<keep-alive>组件的激活
+  function reactivateComponent(vnode: VNode, insertedVnodeQueue: Array<unknown>, parentElm: Node, refElm: Node) {
+    let innerNode = vnode
+    if (vnode.elm) {
+      // 这块用于：因为内部节点的create钩子不会再次调用，重新激活的组件的过渡效果将不会触发
+      while (innerNode.componentInstance) {
+        innerNode.componentInstance._vnode && (innerNode = innerNode.componentInstance._vnode)
+        if (innerNode.data && innerNode.data.transition && cbs.activate) {
+          for (let i = 0; i < cbs.activate.length; ++i) {
+            cbs.activate[i](emptyNode, innerNode)
+          }
+          insertedVnodeQueue.push(innerNode)
+          break
+        }
+      }
+      // 不像一个新创建的组件，一个重新激活的组件不会重新插入自身，所以这里进行插入
+      insert(parentElm, vnode.elm, refElm)
+    }
+  }
+
+  // 往parent子节点里的ref前插入elm或往parent子节点里的最末尾添加elm
+  function insert(parent: Node, elm: Node, ref: Node | null = null) {
+    if (ref) {
+      if (nodeOps.parentNode(ref) === parent) {
+        nodeOps.insertBefore(parent, elm, ref)
+      }
+    } else {
+      nodeOps.appendChild(parent, elm)
+    }
+  }
+
   // 创建子节点，如果children是虚拟节点数组，则以vnode.elm为父节点，children列表内虚拟节点为子节点创建节点；否则如果vnode.text为字符串或数字，则以vnode.elm为父节点，vnode.text的文本节点为子节点创建节点
   function createChildren(vnode: VNode, children: Array<VNode> | null, insertedVnodeQueue) {
     if (isOfType<Element>(vnode.elm, 'setAttribute')) {
@@ -184,6 +221,24 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
           seenKeys[key] = true
         }
       }
+    }
+  }
+
+  // 循环触发modules里的create钩子，如果传进来的vnode.data.hook也存在create钩子，则调用。
+  function invokeCreateHooks(vnode: VNode, insertedVnodeQueue) {
+    if (cbs.create) {
+      for (let i = 0; i < cbs.create.length; ++i) {
+        cbs.create[i](emptyNode, vnode)
+      }
+      if (vnode.data && vnode.data.hook) {
+        vnode.data.hook.create(emptyNode, vnode)
+        vnode.data.hook.insert && insertedVnodeQueue.push(vnode)
+      }
+      // i = vnode.data.hook // Reuse variable
+      // if (isDef(i)) {
+      //   if (isDef(i.create)) i.create(emptyNode, vnode)
+      //   if (isDef(i.insert)) insertedVnodeQueue.push(vnode)
+      // }
     }
   }
 
@@ -223,10 +278,10 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
       // it should've created a child instance and mounted it. the child
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
-      if (vnode.componentInstance) {
+      if (vnode.componentInstance && vnode.elm) {
         initComponent(vnode, insertedVnodeQueue)
         insert(parentElm, vnode.elm, refElm)
-        if (isTrue(isReactivated)) {
+        if (isReactivated) {
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
         }
         return true
