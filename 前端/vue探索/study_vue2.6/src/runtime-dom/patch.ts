@@ -2,12 +2,13 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-18 18:00:45
+ * @LastEditTime: 2021-09-23 11:30:14
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
-import { createBaseVNode, VNode, cloneVNode, config } from '@/runtime-core'
+import { createBaseVNode, VNode, cloneVNode, config, VNodeWithData } from '@/runtime-core'
 import { warn, isOfType } from '@/shared'
+import { registerRef } from './modules/ref'
 
 const enum PatchHook {
   create = 'create',
@@ -193,7 +194,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   }
 
   // 创建子节点，如果children是虚拟节点数组，则以vnode.elm为父节点，children列表内虚拟节点为子节点创建节点；否则如果vnode.text为字符串或数字，则以vnode.elm为父节点，vnode.text的文本节点为子节点创建节点
-  function createChildren(vnode: VNode, children: Array<VNode> | null, insertedVnodeQueue) {
+  function createChildren(vnode: VNode, children?: Array<VNode>, insertedVnodeQueue = []) {
     if (isOfType<Element>(vnode.elm, 'setAttribute')) {
       if (children) {
         if (process.env.NODE_ENV !== 'production') {
@@ -244,7 +245,6 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
 
   // 设置 scope id 属性给scoped CSS
   function setScope(vnode: VNode) {
-    let i
     if (isOfType<Element>(vnode.elm, 'setAttribute')) {
       // fnScopeId存在则在该虚拟节点绑定的节点上附加scope id
       if (vnode.fnScopeId) {
@@ -307,7 +307,9 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     } else {
       // empty component root.
       // skip all element-related modules except for ref (#3455)
-      registerRef(vnode)
+      if (vnode.tag && vnode.data && vnode.context) {
+        registerRef(<VNodeWithData>vnode)
+      }
       // make sure to invoke the insert hook
       insertedVnodeQueue.push(vnode)
     }

@@ -2,87 +2,78 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-18 16:52:16
+ * @LastEditTime: 2021-09-23 20:56:00
  * @Description: 请描述该文件
  */
 
 import { Component, VNodeComponentOptions } from '.'
 
 export interface VNode {
-  tag: string | null
-  data: VNodeData | null
-  children: Array<VNode> | null
-  text: string | null
-  elm: Element | Node | null
-  ns: string | null
-  context: Component | null
-  key: string | number | null
-  componentOptions: VNodeComponentOptions | null
-  componentInstance: Component | null
-  parent: VNode | null
+  tag?: string
+  data?: VNodeData
+  children?: Array<VNode>
+  text?: string
+  elm?: Element | Node
+  ns?: string
+  context?: Component
+  key?: string | number
+  componentOptions?: VNodeComponentOptions
+  componentInstance?: Component
+  parent?: VNode
 
   // strictly internal
   isStatic: boolean
   isRootInsert: boolean
   isComment: boolean
   isCloned: boolean
-  asyncFactory: (() => void) | null
-  asyncMeta: Record<string, unknown> | null
+  asyncFactory?: () => void
+  asyncMeta?: Record<string, unknown>
   isAsyncPlaceholder: boolean
-  fnContext: Component | null
-  fnOptions: Component | null
-  fnScopeId: string | null
+  fnContext?: Component
+  fnOptions?: Component
+  fnScopeId?: string
 }
 
 export interface VNodeWithData {
   tag: string
   data: VNodeData
-  children: Array<VNode> | null
-  text: null
-  elm: Element | Node | null
-  ns: string | null
+  children?: Array<VNode>
+  elm?: Element | Node
+  ns?: string
   context: Component
-  key: string | number | null
-  componentOptions: VNodeComponentOptions | null
-  componentInstance: Component | null
-  parent: VNodeWithData | null
+  key?: string | number
+  componentOptions?: VNodeComponentOptions
+  componentInstance?: Component
+  parent?: VNodeWithData
   isRootInsert: boolean
 }
 
 export const createBaseVNode = (
-  tag: string | null = null,
-  data: VNodeData | null = null,
-  children: Array<VNode> | null = null,
-  text: string | null = null,
-  elm: Node | null = null,
-  context: Component | null = null,
-  componentOptions: VNodeComponentOptions | null = null,
-  asyncFactory: (() => void) | null = null
+  tag?: string,
+  data?: VNodeData,
+  children?: Array<VNode>,
+  text?: string,
+  elm?: Node,
+  context?: Component,
+  componentOptions?: VNodeComponentOptions,
+  asyncFactory?: () => void
 ): VNode => {
-  return {
-    tag,
-    data,
-    children,
-    text,
-    elm,
-    ns: null,
-    context,
-    key: null,
-    componentOptions,
-    componentInstance: null,
-    parent: null,
-
+  const vn: VNode = {
     isStatic: false,
     isRootInsert: false,
     isComment: false,
     isCloned: false,
-    asyncFactory,
-    asyncMeta: null,
-    isAsyncPlaceholder: false,
-    fnContext: null,
-    fnOptions: null,
-    fnScopeId: null
+    isAsyncPlaceholder: false
   }
+  tag && (vn.tag = tag)
+  data && (vn.data = data)
+  children && (vn.children = children)
+  text && (vn.text = text)
+  elm && (vn.elm = elm)
+  context && (vn.context = context)
+  componentOptions && (vn.componentOptions = componentOptions)
+  asyncFactory && (vn.asyncFactory = asyncFactory)
+  return vn
 }
 
 // optimized shallow clone
@@ -122,6 +113,7 @@ export interface VNodeData {
   attrs?: { [key: string]: string }
   pre?: boolean
   keepAlive?: boolean
+  refInFor?: boolean
   hook?: { [key: string]: (a: unknown, b: unknown) => void }
   pendingInsert?: unknown
   transition?: Record<string, unknown>
