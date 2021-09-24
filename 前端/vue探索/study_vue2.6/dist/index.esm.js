@@ -3,21 +3,34 @@ const namespaceMap = {
     math: 'http://www.w3.org/1998/Math/MathML'
 };
 
-const createBaseVNode = (tag = null, data = null, children = null, text = null, elm = null, context = null, componentOptions = null, asyncFactory = null) => {
-    return {
-        tag,
-        key: null,
-        data,
-        children,
-        text,
-        elm,
-        context,
-        componentOptions,
-        ns: null,
-        isAsyncPlaceholder: false,
-        asyncFactory
-    };
+noop;
+noop;
+noop;
+if (process.env.NODE_ENV !== 'production') ;
+
+const noop = () => {
 };
+
+const createBaseVNode = (tag, data, children, text, elm, context, componentOptions, asyncFactory) => {
+    const vn = {
+        isStatic: false,
+        isRootInsert: false,
+        isComment: false,
+        isCloned: false,
+        isAsyncPlaceholder: false
+    };
+    tag && (vn.tag = tag);
+    data && (vn.data = data);
+    children && (vn.children = children);
+    text && (vn.text = text);
+    elm && (vn.elm = elm);
+    context && (vn.context = context);
+    componentOptions && (vn.componentOptions = componentOptions);
+    asyncFactory && (vn.asyncFactory = asyncFactory);
+    return vn;
+};
+
+createBaseVNode('', {}, []);
 
 const nodeOps = {
     createElement(tagName, vnode) {

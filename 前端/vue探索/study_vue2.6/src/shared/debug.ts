@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-09 16:38:42
- * @LastEditTime: 2021-09-09 20:57:29
+ * @LastEditTime: 2021-09-24 11:38:27
  * @Description: 请描述该文件
  */
 
@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== 'production') {
     }
   }
 
-  formatComponentName = (vm: Component, includeFile: boolean = false): string => {
+  formatComponentName = (vm: Component, includeFile = false): string => {
     if (vm.$root === vm) {
       return '<Root>'
     }

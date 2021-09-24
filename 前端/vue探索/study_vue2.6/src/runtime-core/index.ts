@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:23:55
- * @LastEditTime: 2021-09-23 20:47:17
+ * @LastEditTime: 2021-09-24 11:01:55
  * @Description: 运行时核心
  */
 
@@ -20,7 +20,7 @@ interface Component {
   $parent?: Component
   $root: Component
   $options: ComponentOptions
-  $refs: { [key: string]: Component | Element | Array<Component | Element> | void }
+  $refs: { [key: string]: Component | Element | Array<Component | Element> | undefined }
 
   // private properties
   _isVue: boolean

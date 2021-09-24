@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-23 20:56:00
+ * @LastEditTime: 2021-09-24 17:45:38
  * @Description: 请描述该文件
  */
 
@@ -94,14 +94,14 @@ export function cloneVNode(vnode: VNode): VNode {
     vnode.componentOptions,
     vnode.asyncFactory
   )
-  cloned.ns = vnode.ns
+  vnode.ns && (cloned.ns = vnode.ns)
   cloned.isStatic = vnode.isStatic
-  cloned.key = vnode.key
+  vnode.key && (cloned.key = vnode.key)
   cloned.isComment = vnode.isComment
-  cloned.fnContext = vnode.fnContext
-  cloned.fnOptions = vnode.fnOptions
-  cloned.fnScopeId = vnode.fnScopeId
-  cloned.asyncMeta = vnode.asyncMeta
+  vnode.fnContext && (cloned.fnContext = vnode.fnContext)
+  vnode.fnOptions && (cloned.fnOptions = vnode.fnOptions)
+  vnode.fnScopeId && (cloned.fnScopeId = vnode.fnScopeId)
+  vnode.asyncMeta && (cloned.asyncMeta = vnode.asyncMeta)
   cloned.isCloned = true
   return cloned
 }
@@ -114,7 +114,7 @@ export interface VNodeData {
   pre?: boolean
   keepAlive?: boolean
   refInFor?: boolean
-  hook?: { [key: string]: (a: unknown, b: unknown) => void }
+  hook?: { [key: string]: (a: unknown, b?: unknown) => void }
   pendingInsert?: unknown
   transition?: Record<string, unknown>
 }
