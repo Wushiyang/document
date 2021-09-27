@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-24 17:59:38
+ * @LastEditTime: 2021-09-27 21:00:28
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
@@ -22,7 +22,7 @@ const hooks = [PatchHook.create, PatchHook.activate, PatchHook.update, PatchHook
 export const emptyNode = createBaseVNode('', {}, [])
 
 // 判断同一个虚拟节点
-function sameVNode(a: VNode, b: VNode): boolean {
+function sameVnode(a: VNode, b: VNode): boolean {
   return a.key === b.key && ((a.tag === b.tag && sameInputType(a, b)) || (a.isAsyncPlaceholder && a.asyncFactory === b.asyncFactory))
 }
 
@@ -70,14 +70,14 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     return createBaseVNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
 
-  // 创建移除回调函数的函数
-  function createRmCb(childElm, listeners) {
-    function remove() {
+  // 创建计算内含节点的删除节点函数
+  function createRmCb(childElm: Node, listeners?: number): IRemoveCallback {
+    const remove: IRemoveCallback = () => {
       if (--remove.listeners === 0) {
         removeNode(childElm)
       }
     }
-    remove.listeners = listeners
+    remove.listeners = listeners || 0
     return remove
   }
 
@@ -361,38 +361,122 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     }
   }
 
-  // interface IRmCallback {
-  //   () void
+  interface IRemoveCallback {
+    (): void
+    listeners: number
+  }
 
-  // }
-  // function removeAndInvokeRemoveHook (vnode: VNode, rm?: () => void) {
-  //   if (rm || vnode.data) {
-  //     let i
-  //     const listeners = cbs.remove ? 0 : cbs.remove.length + 1
-  //     if (rm) {
-  //       // we have a recursively passed down rm callback
-  //       // increase the listeners count
-  //       rm.listeners += listeners
-  //     } else {
-  //       // directly removing
-  //       rm = createRmCb(vnode.elm, listeners)
-  //     }
-  //     // recursively invoke hooks on child component root node
-  //     if (isDef(i = vnode.componentInstance) && isDef(i = i._vnode) && isDef(i.data)) {
-  //       removeAndInvokeRemoveHook(i, rm)
-  //     }
-  //     for (i = 0; i < cbs.remove.length; ++i) {
-  //       cbs.remove[i](vnode, rm)
-  //     }
-  //     if (isDef(i = vnode.data.hook) && isDef(i = i.remove)) {
-  //       i(vnode, rm)
-  //     } else {
-  //       rm()
-  //     }
-  //   } else {
-  //     vnode.elm && removeNode(vnode.elm)
-  //   }
-  // }
+  // 移除并触发移除hook
+  function removeAndInvokeRemoveHook(vnode: VNode, rm?: IRemoveCallback) {
+    if (rm || vnode.data) {
+      if (cbs.remove) {
+        const listeners = cbs.remove.length + 1
+        if (rm) {
+          // 如果rm存在则增加模块的移除计数
+          rm.listeners += listeners
+        } else {
+          // 如果rm不存在则直接用模块移除生成移除计数
+          vnode.elm && (rm = createRmCb(vnode.elm, listeners))
+        }
+        // 递归地触发子组件的根节点
+        if (vnode.componentInstance && vnode.componentInstance._vnode && vnode.componentInstance._vnode.data) {
+          removeAndInvokeRemoveHook(vnode.componentInstance._vnode, rm)
+        }
+        // 触发模块的remove的hook并计数
+        for (let i = 0; i < cbs.remove.length; ++i) {
+          cbs.remove[i](vnode, rm)
+        }
+        if (vnode.data && vnode.data.hook && vnode.data.hook.remove) {
+          // vnode.data.hook.remove存在触发vnode.data的hook-remove并计数
+          vnode.data.hook.remove(vnode, rm)
+        } else {
+          // 否则rm存在则触发rm并计数
+          rm && rm()
+        }
+      }
+    } else {
+      // 直接移除没有回调
+      vnode.elm && removeNode(vnode.elm)
+    }
+  }
+
+  // 更新子节点
+  function updateChildren(parentElm: Element, oldCh: Array<VNode>, newCh: Array<VNode>, insertedVnodeQueue: Array<unknown>, removeOnly = false) {
+    let oldStartIdx = 0
+    let newStartIdx = 0
+    let oldEndIdx = oldCh.length - 1
+    let oldStartVnode = oldCh[0]
+    let oldEndVnode = oldCh[oldEndIdx]
+    let newEndIdx = newCh.length - 1
+    let newStartVnode = newCh[0]
+    let newEndVnode = newCh[newEndIdx]
+    let oldKeyToIdx, idxInOld, vnodeToMove, refElm
+
+    // removeOnly is a special flag used only by <transition-group>
+    // to ensure removed elements stay in correct relative positions
+    // during leaving transitions
+    const canMove = !removeOnly
+
+    // 检测新节点是否有同样的key
+    if (process.env.NODE_ENV !== 'production') {
+      checkDuplicateKeys(newCh)
+    }
+
+    while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+      if (!oldStartVnode) {
+        oldStartVnode = oldCh[++oldStartIdx] // Vnode has been moved left
+      } else if (!oldEndVnode) {
+        oldEndVnode = oldCh[--oldEndIdx]
+      } else if (sameVnode(oldStartVnode, newStartVnode)) {
+        // 新前和旧前，patch后新前和旧前索引后推
+        patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
+        oldStartVnode = oldCh[++oldStartIdx]
+        newStartVnode = newCh[++newStartIdx]
+      } else if (sameVnode(oldEndVnode, newEndVnode)) {
+        // 新后和旧后，patch后新后和旧后索引前推
+        patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
+        oldEndVnode = oldCh[--oldEndIdx]
+        newEndVnode = newCh[--newEndIdx]
+      } else if (sameVnode(oldStartVnode, newEndVnode)) {
+        // 新后和旧前，patch后新后插到旧前前面，新后索引前推，旧前索引后推
+        patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
+        const oldEndVnodeNextSibling = oldEndVnode.elm && nodeOps.nextSibling(oldEndVnode.elm) // 旧后的下一个兄弟节点
+        canMove && oldStartVnode.elm && oldEndVnodeNextSibling && nodeOps.insertBefore(parentElm, oldStartVnode.elm, oldEndVnodeNextSibling)
+        oldStartVnode = oldCh[++oldStartIdx]
+        newEndVnode = newCh[--newEndIdx]
+      } else if (sameVnode(oldEndVnode, newStartVnode)) {
+        // Vnode moved left
+        patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
+        canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm)
+        oldEndVnode = oldCh[--oldEndIdx]
+        newStartVnode = newCh[++newStartIdx]
+      } else {
+        if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
+        idxInOld = isDef(newStartVnode.key) ? oldKeyToIdx[newStartVnode.key] : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
+        if (isUndef(idxInOld)) {
+          // New element
+          createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
+        } else {
+          vnodeToMove = oldCh[idxInOld]
+          if (sameVnode(vnodeToMove, newStartVnode)) {
+            patchVnode(vnodeToMove, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
+            oldCh[idxInOld] = undefined
+            canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
+          } else {
+            // same key but different element. treat as new element
+            createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
+          }
+        }
+        newStartVnode = newCh[++newStartIdx]
+      }
+    }
+    if (oldStartIdx > oldEndIdx) {
+      refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm
+      addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue)
+    } else if (newStartIdx > newEndIdx) {
+      removeVnodes(oldCh, oldStartIdx, oldEndIdx)
+    }
+  }
 
   // 检查是否创建了重复的key，并在内部建映射用于检索存在
   function checkDuplicateKeys(children: Array<VNode>) {
@@ -407,6 +491,71 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
           seenKeys[key] = true
         }
       }
+    }
+  }
+
+  // patch虚拟节点
+  function patchVnode(oldVnode, vnode, insertedVnodeQueue, ownerArray, index, removeOnly = false) {
+    if (oldVnode === vnode) {
+      return
+    }
+
+    if (isDef(vnode.elm) && isDef(ownerArray)) {
+      // clone reused vnode
+      vnode = ownerArray[index] = cloneVNode(vnode)
+    }
+
+    const elm = (vnode.elm = oldVnode.elm)
+
+    if (isTrue(oldVnode.isAsyncPlaceholder)) {
+      if (isDef(vnode.asyncFactory.resolved)) {
+        hydrate(oldVnode.elm, vnode, insertedVnodeQueue)
+      } else {
+        vnode.isAsyncPlaceholder = true
+      }
+      return
+    }
+
+    // reuse element for static trees.
+    // note we only do this if the vnode is cloned -
+    // if the new node is not cloned it means the render functions have been
+    // reset by the hot-reload-api and we need to do a proper re-render.
+    if (isTrue(vnode.isStatic) && isTrue(oldVnode.isStatic) && vnode.key === oldVnode.key && (isTrue(vnode.isCloned) || isTrue(vnode.isOnce))) {
+      vnode.componentInstance = oldVnode.componentInstance
+      return
+    }
+
+    let i
+    const data = vnode.data
+    if (isDef(data) && isDef((i = data.hook)) && isDef((i = i.prepatch))) {
+      i(oldVnode, vnode)
+    }
+
+    const oldCh = oldVnode.children
+    const ch = vnode.children
+    if (isDef(data) && isPatchable(vnode)) {
+      for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
+      if (isDef((i = data.hook)) && isDef((i = i.update))) i(oldVnode, vnode)
+    }
+    if (isUndef(vnode.text)) {
+      if (isDef(oldCh) && isDef(ch)) {
+        if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
+      } else if (isDef(ch)) {
+        if (process.env.NODE_ENV !== 'production') {
+          checkDuplicateKeys(ch)
+        }
+        if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '')
+        addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
+      } else if (isDef(oldCh)) {
+        removeVnodes(oldCh, 0, oldCh.length - 1)
+      } else if (isDef(oldVnode.text)) {
+        nodeOps.setTextContent(elm, '')
+      }
+    } else if (oldVnode.text !== vnode.text) {
+      nodeOps.setTextContent(elm, vnode.text)
+    }
+    if (isDef(data)) {
+      if (isDef((i = data.hook)) && isDef((i = i.postpatch))) i(oldVnode, vnode)
     }
   }
 
