@@ -19,6 +19,7 @@ const createBaseVNode = (tag, data, children, text, elm, context, componentOptio
         isRootInsert: false,
         isComment: false,
         isCloned: false,
+        isOnce: false,
         isAsyncPlaceholder: false
     };
     tag && (vn.tag = tag);
@@ -52,7 +53,7 @@ const nodeOps = {
     createComment(text) {
         return document.createComment(text);
     },
-    insertBefore(parentNode, newNode, referenceNode) {
+    insertBefore(parentNode, newNode, referenceNode = null) {
         parentNode.insertBefore(newNode, referenceNode);
     },
     removeChild(parentnode, child) {

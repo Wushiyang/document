@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-28 11:25:31
+ * @LastEditTime: 2021-09-28 20:59:57
  * @Description: 请描述该文件
  */
 
@@ -115,11 +115,12 @@ export interface VNodeData {
   key?: string | number
   slot?: string
   ref?: string
-  attrs?: { [key: string]: string }
+  attrs?: Partial<{ [key: string]: string }>
+  domProps?: Partial<{ [key: string]: unknown }>
   pre?: boolean
   keepAlive?: boolean
   refInFor?: boolean
-  hook?: { [key: string]: (a: unknown, b?: unknown) => void }
+  hook?: Partial<{ [key: string]: (a: unknown, b?: unknown) => void }>
   pendingInsert?: unknown
   transition?: Record<string, unknown>
 }

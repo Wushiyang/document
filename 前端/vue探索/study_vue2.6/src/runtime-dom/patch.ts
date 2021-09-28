@@ -2,12 +2,12 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-28 11:45:24
+ * @LastEditTime: 2021-09-28 20:59:24
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
 import { createBaseVNode, VNode, cloneVNode, config, VNodeWithData } from '@/runtime-core'
-import { warn, isOfType } from '@/shared'
+import { warn, isOfType, makeMap } from '@/shared'
 import { registerRef } from './modules/ref'
 
 const enum PatchHook {
@@ -73,8 +73,8 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   }
 
   // 创建计算内含节点的删除节点函数
-  function createRmCb(childElm: Node, listeners?: number): IRemoveCallback {
-    const remove: IRemoveCallback = () => {
+  function createRmCb(childElm: Node, listeners?: number): { (): void; listeners: number } {
+    const remove: { (): void; listeners: number } = () => {
       if (--remove.listeners === 0) {
         removeNode(childElm)
       }
@@ -252,7 +252,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   }
 
   // 往parent子节点里的ref前插入elm或往parent子节点里的最末尾添加elm
-  function insert(parent: Node, elm: Node, ref: Node | null = null) {
+  function insert(parent: Node, elm: Node, ref?: Node) {
     if (ref) {
       if (nodeOps.parentNode(ref) === parent) {
         nodeOps.insertBefore(parent, elm, ref)
@@ -325,7 +325,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   }
 
   // 添加vnode
-  function addVnodes(parentElm: Element, refElm: Element, vnodes: Array<VNode>, startIdx: number, endIdx: number, insertedVnodeQueue: Array<unknown>) {
+  function addVnodes(parentElm: Element, refElm?: Element, vnodes: Array<VNode> = [], startIdx = 1, endIdx = 0, insertedVnodeQueue: Array<unknown> = []) {
     for (; startIdx <= endIdx; ++startIdx) {
       createElm(vnodes[startIdx], insertedVnodeQueue, parentElm, refElm, false, vnodes, startIdx)
     }
@@ -528,55 +528,187 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
-    const elm = (vnode.elm = oldVnode.elm)
+    if (isOfType<Element>(oldVnode.elm, 'setAttribute')) {
+      const elm = (vnode.elm = oldVnode.elm)
 
-    if (oldVnode.isAsyncPlaceholder) {
-      if (vnode.asyncFactory && vnode.asyncFactory.resolved) {
-        hydrate(oldVnode.elm, vnode, insertedVnodeQueue)
-      } else {
-        vnode.isAsyncPlaceholder = true
-      }
-      return
-    }
-
-    // reuse element for static trees.
-    // note we only do this if the vnode is cloned -
-    // if the new node is not cloned it means the render functions have been
-    // reset by the hot-reload-api and we need to do a proper re-render.
-    if (vnode.isStatic && oldVnode.isStatic && vnode.key === oldVnode.key && (vnode.isCloned || vnode.isOnce)) {
-      vnode.componentInstance = oldVnode.componentInstance
-      return
-    }
-
-    let i
-    const data = vnode.data
-    data && data.hook && data.hook.prepatch(oldVnode, vnode) // 先触发vnode里的prepatch钩子
-
-    const oldCh = oldVnode.children
-    const ch = vnode.children
-    if (data && isPatchable(vnode)) {
-      for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
-      if (isDef((i = data.hook)) && isDef((i = i.update))) i(oldVnode, vnode)
-    }
-    if (isUndef(vnode.text)) {
-      if (isDef(oldCh) && isDef(ch)) {
-        if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
-      } else if (isDef(ch)) {
-        if (process.env.NODE_ENV !== 'production') {
-          checkDuplicateKeys(ch)
+      if (oldVnode.isAsyncPlaceholder) {
+        if (vnode.asyncFactory && vnode.asyncFactory.resolved) {
+          hydrate(oldVnode.elm, vnode, insertedVnodeQueue)
+        } else {
+          vnode.isAsyncPlaceholder = true
         }
-        if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '')
-        addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
-      } else if (isDef(oldCh)) {
-        removeVnodes(oldCh, 0, oldCh.length - 1)
-      } else if (isDef(oldVnode.text)) {
-        nodeOps.setTextContent(elm, '')
+        return
       }
-    } else if (oldVnode.text !== vnode.text) {
-      nodeOps.setTextContent(elm, vnode.text)
+
+      // reuse element for static trees.
+      // note we only do this if the vnode is cloned -
+      // if the new node is not cloned it means the render functions have been
+      // reset by the hot-reload-api and we need to do a proper re-render.
+      if (vnode.isStatic && oldVnode.isStatic && vnode.key === oldVnode.key && (vnode.isCloned || vnode.isOnce)) {
+        vnode.componentInstance = oldVnode.componentInstance
+        return
+      }
+
+      const data = vnode.data
+      // 触发钩子prepatch
+      data && data.hook && data.hook.prepatch && data.hook.prepatch(oldVnode, vnode)
+
+      const oldCh = oldVnode.children
+      const ch = vnode.children
+      // 触发钩子update
+      if (data && isPatchable(vnode)) {
+        if (cbs.update) {
+          for (let i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
+        }
+        data.hook && data.hook.update && data.hook.update(oldVnode, vnode)
+      }
+      if (!vnode.text) {
+        // 非文本节点
+        if (oldCh && ch) {
+          // 1、新旧节点数组存在且不一样，更新子节点
+          if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
+        } else if (ch) {
+          // 2、只有新节点数组存在，添加
+          if (process.env.NODE_ENV !== 'production') {
+            checkDuplicateKeys(ch)
+          }
+          if (oldVnode.text) nodeOps.setTextContent(elm, '')
+          addVnodes(elm, undefined, ch, 0, ch.length - 1, insertedVnodeQueue)
+        } else if (oldCh) {
+          // 3、只有旧节点数组存在，移除
+          removeVnodes(oldCh, 0, oldCh.length - 1)
+        } else if (oldVnode.text) {
+          nodeOps.setTextContent(elm, '')
+        }
+      } else if (oldVnode.text !== vnode.text) {
+        // 4、文本节点且新旧节点文本不一样，patch文本
+        nodeOps.setTextContent(elm, vnode.text)
+      }
+      // 触发钩子postpatch
+      data && data.hook && data.hook.postpatch && data.hook.postpatch(oldVnode, vnode)
     }
-    if (isDef(data)) {
-      if (isDef((i = data.hook)) && isDef((i = i.postpatch))) i(oldVnode, vnode)
+  }
+
+  function invokeInsertHook(vnode: VNode, queue, initial) {
+    // delay insert hooks for component root nodes, invoke them after the
+    // element is really inserted
+    if (initial && vnode.parent) {
+      vnode.parent.data && (vnode.parent.data.pendingInsert = queue)
+    } else {
+      for (let i = 0; i < queue.length; ++i) {
+        queue[i].data.hook.insert(queue[i])
+      }
+    }
+  }
+
+  let hydrationBailed = false
+  // list of modules that can skip create hook during hydration because they
+  // are already rendered on the client or has no need for initialization
+  // Note: style is excluded because it relies on initial clone for future
+  // deep updates (#7063).
+  const isRenderedModule = makeMap('attrs,class,staticClass,staticStyle,key')
+
+  // Note: this is a browser-only function so we can assume elms are DOM nodes.
+  function hydrate(elm: Element, vnode: VNode, insertedVnodeQueue: Array<unknown>, inVPre = false): boolean {
+    let i
+    const { tag, data, children } = vnode
+    inVPre = inVPre || !!(data && data.pre)
+    vnode.elm = elm
+
+    // 注释节点则直接完成
+    if (vnode.isComment && vnode.asyncFactory) {
+      vnode.isAsyncPlaceholder = true
+      return true
+    }
+    // assert node match
+    if (process.env.NODE_ENV !== 'production') {
+      if (!assertNodeMatch(elm, vnode, inVPre)) {
+        return false
+      }
+    }
+    if (data) {
+      // 触发init钩子
+      data.hook && data.hook.init && data.hook.init(vnode, true /* hydrating */)
+      if (vnode.componentInstance) {
+        // child component. it should have hydrated its own tree.
+        initComponent(vnode, insertedVnodeQueue)
+        return true
+      }
+    }
+    if (tag) {
+      if (children) {
+        // empty element, allow client to pick up and populate children
+        if (!elm.hasChildNodes()) {
+          createChildren(vnode, children, insertedVnodeQueue)
+        } else {
+          // v-html and domProps: innerHTML
+          if (data && data.domProps && data.domProps.innerHTML) {
+            if (i !== elm.innerHTML) {
+              /* istanbul ignore if */
+              if (process.env.NODE_ENV !== 'production' && typeof console !== 'undefined' && !hydrationBailed) {
+                hydrationBailed = true
+                console.warn('Parent: ', elm)
+                console.warn('server innerHTML: ', i)
+                console.warn('client innerHTML: ', elm.innerHTML)
+              }
+              return false
+            }
+          } else {
+            // iterate and compare children lists
+            let childrenMatch = true
+            let childNode = elm.firstChild
+            for (let i = 0; i < children.length; i++) {
+              if (!childNode || !hydrate(childNode, children[i], insertedVnodeQueue, inVPre)) {
+                childrenMatch = false
+                break
+              }
+              childNode = childNode.nextSibling
+            }
+            // if childNode is not null, it means the actual childNodes list is
+            // longer than the virtual children list.
+            if (!childrenMatch || childNode) {
+              /* istanbul ignore if */
+              if (process.env.NODE_ENV !== 'production' && typeof console !== 'undefined' && !hydrationBailed) {
+                hydrationBailed = true
+                console.warn('Parent: ', elm)
+                console.warn('Mismatching childNodes vs. VNodes: ', elm.childNodes, children)
+              }
+              return false
+            }
+          }
+        }
+      }
+      if (isDef(data)) {
+        let fullInvoke = false
+        for (const key in data) {
+          if (!isRenderedModule(key)) {
+            fullInvoke = true
+            invokeCreateHooks(vnode, insertedVnodeQueue)
+            break
+          }
+        }
+        if (!fullInvoke && data['class']) {
+          // ensure collecting deps for deep class bindings for future updates
+          traverse(data['class'])
+        }
+      }
+    } else if (elm.data !== vnode.text) {
+      elm.data = vnode.text
+    }
+    return true
+  }
+
+  // 推断节点匹配
+  function assertNodeMatch(node: Element, vnode: VNode, inVPre: boolean): boolean {
+    if (vnode.tag) {
+      // vnode.tag开头含vue-component或不是vue未知元素且vnode.tag和node.tagName的小写相同
+      return (
+        vnode.tag.indexOf('vue-component') === 0 ||
+        (!isUnknownElement(vnode, inVPre) && vnode.tag.toLowerCase() === (node.tagName && node.tagName.toLowerCase()))
+      )
+    } else {
+      // 3 文本节点 8 注释节点
+      return node.nodeType === (vnode.isComment ? 8 : 3)
     }
   }
 

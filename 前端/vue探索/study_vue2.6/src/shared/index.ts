@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:53:53
- * @LastEditTime: 2021-09-23 20:49:54
+ * @LastEditTime: 2021-09-28 20:40:03
  * @Description: 请描述该文件
  */
 export { namespaceMap } from './element'
@@ -24,4 +24,13 @@ export function remove<T = unknown>(arr: Array<T>, item: T): Array<T> | void {
       return arr.splice(index, 1)
     }
   }
+}
+
+export function makeMap(str: string, expectsLowerCase?: boolean): (key: string) => true | undefined {
+  const map = Object.create(null)
+  const list: Array<string> = str.split(',')
+  for (let i = 0; i < list.length; i++) {
+    map[list[i]] = true
+  }
+  return expectsLowerCase ? (val) => map[val.toLowerCase()] : (val) => map[val]
 }
