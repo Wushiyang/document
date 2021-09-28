@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:13:13
- * @LastEditTime: 2021-09-09 10:37:55
+ * @LastEditTime: 2021-09-28 09:25:03
  * @Description: dom操作
  */
 import { VNode } from '@/runtime-core'
@@ -32,7 +32,7 @@ export const nodeOps = {
     return document.createComment(text)
   },
   // 在节点前插入节点
-  insertBefore(parentNode: Node, newNode: Node, referenceNode: Node): void {
+  insertBefore(parentNode: Node, newNode: Node, referenceNode: Node | null = null): void {
     parentNode.insertBefore(newNode, referenceNode)
   },
   // 移除子节点

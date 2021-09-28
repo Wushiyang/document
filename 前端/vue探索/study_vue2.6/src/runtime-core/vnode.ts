@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:32:10
- * @LastEditTime: 2021-09-24 17:45:38
+ * @LastEditTime: 2021-09-28 11:25:31
  * @Description: 请描述该文件
  */
 
@@ -26,7 +26,11 @@ export interface VNode {
   isRootInsert: boolean
   isComment: boolean
   isCloned: boolean
-  asyncFactory?: () => void
+  isOnce: boolean
+  asyncFactory?: {
+    (): void
+    resolved?: boolean
+  }
   asyncMeta?: Record<string, unknown>
   isAsyncPlaceholder: boolean
   fnContext?: Component
@@ -63,6 +67,7 @@ export const createBaseVNode = (
     isRootInsert: false,
     isComment: false,
     isCloned: false,
+    isOnce: false,
     isAsyncPlaceholder: false
   }
   tag && (vn.tag = tag)

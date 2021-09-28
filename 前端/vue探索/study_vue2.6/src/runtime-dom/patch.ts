@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-27 21:00:28
+ * @LastEditTime: 2021-09-28 11:45:24
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
@@ -36,11 +36,13 @@ function sameInputType(a: VNode, b: VNode): boolean {
 }
 
 // 返回一个VNode数组的key到索引的映射对象
-function createKeyToOldIdx(children: VNode[], beginIdx: number, endIdx: number): Record<string, number> {
+function createKeyToOldIdx(children: Array<VNode | undefined>, beginIdx: number, endIdx: number): Record<string, number> {
   let i, key
   const map = {}
   for (i = beginIdx; i < endIdx; i++) {
-    key = children[i].key
+    const child = children[i]
+    if (!child) continue
+    key = child.key
     if (key) map[key] = i
   }
   return map
@@ -112,7 +114,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     vnode: VNode,
     insertedVnodeQueue: Array<unknown>,
     parentElm: Element,
-    refElm?: Element,
+    refElm?: Node,
     nested = false,
     ownerArray?: Array<VNode>,
     index?: number
@@ -179,7 +181,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   }
 
   // 创建组件
-  function createComponent(vnode: VNode, insertedVnodeQueue: Array<unknown>, parentElm: Element, refElm?: Element) {
+  function createComponent(vnode: VNode, insertedVnodeQueue: Array<unknown>, parentElm: Element, refElm?: Node) {
     const vnodeData = vnode.data
     if (vnodeData) {
       const isReactivated = vnode.componentInstance && vnodeData.keepAlive
@@ -345,7 +347,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   }
 
   // 删除vnode
-  function removeVnodes(vnodes: Array<VNode>, startIdx: number, endIdx: number) {
+  function removeVnodes(vnodes: Array<VNode | undefined>, startIdx: number, endIdx: number) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx]
       if (ch) {
@@ -361,13 +363,8 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     }
   }
 
-  interface IRemoveCallback {
-    (): void
-    listeners: number
-  }
-
   // 移除并触发移除hook
-  function removeAndInvokeRemoveHook(vnode: VNode, rm?: IRemoveCallback) {
+  function removeAndInvokeRemoveHook(vnode: VNode, rm?: { (): void; listeners: number }) {
     if (rm || vnode.data) {
       if (cbs.remove) {
         const listeners = cbs.remove.length + 1
@@ -401,7 +398,7 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
   }
 
   // 更新子节点
-  function updateChildren(parentElm: Element, oldCh: Array<VNode>, newCh: Array<VNode>, insertedVnodeQueue: Array<unknown>, removeOnly = false) {
+  function updateChildren(parentElm: Element, oldCh: Array<VNode | undefined>, newCh: Array<VNode>, insertedVnodeQueue: Array<unknown>, removeOnly = false) {
     let oldStartIdx = 0
     let newStartIdx = 0
     let oldEndIdx = oldCh.length - 1
@@ -410,7 +407,10 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     let newEndIdx = newCh.length - 1
     let newStartVnode = newCh[0]
     let newEndVnode = newCh[newEndIdx]
-    let oldKeyToIdx, idxInOld, vnodeToMove, refElm
+    let oldKeyToIdx: Record<string, number> | undefined = undefined,
+      idxInOld: number | undefined = undefined,
+      vnodeToMove: VNode | undefined,
+      refElm
 
     // removeOnly is a special flag used only by <transition-group>
     // to ensure removed elements stay in correct relative positions
@@ -423,10 +423,11 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     }
 
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+      // 新旧节点对比
       if (!oldStartVnode) {
-        oldStartVnode = oldCh[++oldStartIdx] // Vnode has been moved left
+        oldStartVnode = oldCh[++oldStartIdx] // 旧前不存在则后推
       } else if (!oldEndVnode) {
-        oldEndVnode = oldCh[--oldEndIdx]
+        oldEndVnode = oldCh[--oldEndIdx] // 旧后不存在则前推
       } else if (sameVnode(oldStartVnode, newStartVnode)) {
         // 新前和旧前，patch后新前和旧前索引后推
         patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
@@ -438,42 +439,48 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
         oldEndVnode = oldCh[--oldEndIdx]
         newEndVnode = newCh[--newEndIdx]
       } else if (sameVnode(oldStartVnode, newEndVnode)) {
-        // 新后和旧前，patch后新后插到旧前前面，新后索引前推，旧前索引后推
+        // 新后和旧前，patch后旧前插到旧后后面，新后索引前推，旧前索引后推
         patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
         const oldEndVnodeNextSibling = oldEndVnode.elm && nodeOps.nextSibling(oldEndVnode.elm) // 旧后的下一个兄弟节点
-        canMove && oldStartVnode.elm && oldEndVnodeNextSibling && nodeOps.insertBefore(parentElm, oldStartVnode.elm, oldEndVnodeNextSibling)
+        canMove && oldStartVnode.elm && nodeOps.insertBefore(parentElm, oldStartVnode.elm, oldEndVnodeNextSibling)
         oldStartVnode = oldCh[++oldStartIdx]
         newEndVnode = newCh[--newEndIdx]
       } else if (sameVnode(oldEndVnode, newStartVnode)) {
-        // Vnode moved left
+        // 新前和旧后，patch后旧后插入到旧前前面，新前索引后推，旧后索引前推
         patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
-        canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm)
+        canMove && oldEndVnode.elm && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm)
         oldEndVnode = oldCh[--oldEndIdx]
         newStartVnode = newCh[++newStartIdx]
       } else {
-        if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
-        idxInOld = isDef(newStartVnode.key) ? oldKeyToIdx[newStartVnode.key] : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
-        if (isUndef(idxInOld)) {
-          // New element
+        // 新前和旧节点数组对比，通用4种情况之外在旧节点数组能找到新前则patch或createElm后插入到旧前，找不到则createElm后插入到旧前，然后新前索引后推
+        if (!oldKeyToIdx) oldKeyToIdx = createKeyToOldIdx(<Array<VNode>>oldCh.filter((_) => !!_), oldStartIdx, oldEndIdx) // 如果旧节点数组key对索引函数不存在则创建
+        idxInOld = newStartVnode.key ? oldKeyToIdx[newStartVnode.key] : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx) //新前节点的key存在则在oldKeyToIdx里寻找在oldCh里的索引，否则在oldCh数组区间[oldStartIdx, oldEndIdx]里寻找新前节点的在oldCh数组里的索引
+        if (!idxInOld) {
+          // 新前在旧节点数组里不能找到的情况，则createElm后插入到旧前
           createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
         } else {
-          vnodeToMove = oldCh[idxInOld]
+          // 新前在旧节点数组里能找的到并索引大于0（肯定大于0因为为0就是新前和旧前的情况，上面已考虑），则patch或createElm后插入到旧前
+          vnodeToMove = <VNode>oldCh[idxInOld] // 既然找的到idxInOld索引则肯定存在这个节点
           if (sameVnode(vnodeToMove, newStartVnode)) {
+            // 同key且相同元素：针对通过oldKeyToIdx获取索引的节点，oldKeyToIdx只考虑key相同
             patchVnode(vnodeToMove, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
             oldCh[idxInOld] = undefined
-            canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
+            canMove && nodeOps.insertBefore(parentElm, <Element | Node>vnodeToMove.elm, oldStartVnode.elm) // 旧节点数组里的elm肯定不是undefined了所以这里用断言
           } else {
-            // same key but different element. treat as new element
+            // 同key且不同元素：作为新节点创建
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
           }
         }
         newStartVnode = newCh[++newStartIdx]
       }
     }
+    // 新旧节点对比后新节点数组或旧节点数组先对比结束
     if (oldStartIdx > oldEndIdx) {
-      refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm
+      // 旧比新先结束则新数组更长，添加多出的新节点
+      refElm = !newCh[newEndIdx + 1] ? null : newCh[newEndIdx + 1].elm
       addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue)
     } else if (newStartIdx > newEndIdx) {
+      // 新比旧先结束则旧数组更长，移除多出的旧节点
       removeVnodes(oldCh, oldStartIdx, oldEndIdx)
     }
   }
@@ -494,21 +501,37 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     }
   }
 
+  // 在旧节点数组节点区间[start,end]里寻找节点node并返回在旧节点数组里的索引
+  function findIdxInOld(node: VNode, oldCh: Array<VNode | undefined>, start: number, end: number): number | undefined {
+    for (let i = start; i < end; i++) {
+      const c = oldCh[i]
+      if (c && sameVnode(node, c)) return i
+    }
+  }
+
   // patch虚拟节点
-  function patchVnode(oldVnode, vnode, insertedVnodeQueue, ownerArray, index, removeOnly = false) {
+  function patchVnode(
+    oldVnode: VNode,
+    vnode: VNode,
+    insertedVnodeQueue: Array<unknown>,
+    ownerArray: Array<VNode>,
+    index: number,
+    removeOnly = false
+  ): undefined {
     if (oldVnode === vnode) {
+      // 同样的地址的节点无需对比
       return
     }
 
-    if (isDef(vnode.elm) && isDef(ownerArray)) {
+    if (vnode.elm) {
       // clone reused vnode
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
     const elm = (vnode.elm = oldVnode.elm)
 
-    if (isTrue(oldVnode.isAsyncPlaceholder)) {
-      if (isDef(vnode.asyncFactory.resolved)) {
+    if (oldVnode.isAsyncPlaceholder) {
+      if (vnode.asyncFactory && vnode.asyncFactory.resolved) {
         hydrate(oldVnode.elm, vnode, insertedVnodeQueue)
       } else {
         vnode.isAsyncPlaceholder = true
@@ -520,20 +543,18 @@ export const createPatchFunction = (backend: { modules: Array<{ [key in PatchHoo
     // note we only do this if the vnode is cloned -
     // if the new node is not cloned it means the render functions have been
     // reset by the hot-reload-api and we need to do a proper re-render.
-    if (isTrue(vnode.isStatic) && isTrue(oldVnode.isStatic) && vnode.key === oldVnode.key && (isTrue(vnode.isCloned) || isTrue(vnode.isOnce))) {
+    if (vnode.isStatic && oldVnode.isStatic && vnode.key === oldVnode.key && (vnode.isCloned || vnode.isOnce)) {
       vnode.componentInstance = oldVnode.componentInstance
       return
     }
 
     let i
     const data = vnode.data
-    if (isDef(data) && isDef((i = data.hook)) && isDef((i = i.prepatch))) {
-      i(oldVnode, vnode)
-    }
+    data && data.hook && data.hook.prepatch(oldVnode, vnode) // 先触发vnode里的prepatch钩子
 
     const oldCh = oldVnode.children
     const ch = vnode.children
-    if (isDef(data) && isPatchable(vnode)) {
+    if (data && isPatchable(vnode)) {
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
       if (isDef((i = data.hook)) && isDef((i = i.update))) i(oldVnode, vnode)
     }
