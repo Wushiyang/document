@@ -2,12 +2,12 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:23:55
- * @LastEditTime: 2021-09-24 11:01:55
+ * @LastEditTime: 2021-09-29 11:56:05
  * @Description: 运行时核心
  */
 
 import { config } from './config'
-import { VNode, VNodeWithData, createBaseVNode, cloneVNode } from './vnode'
+import { VNode, VNodeWithData, cloneVNode } from './vnode'
 
 // let componentCid = 0
 interface Vue {
@@ -43,4 +43,4 @@ interface ComponentOptions {
   _scopeId?: string
 }
 
-export { config, Vue, Component, VNode, VNodeWithData, createBaseVNode, cloneVNode, VNodeComponentOptions }
+export { config, Vue, Component, VNode, VNodeWithData, cloneVNode, VNodeComponentOptions }

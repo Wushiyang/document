@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:53:53
- * @LastEditTime: 2021-09-28 20:40:03
+ * @LastEditTime: 2021-09-29 12:10:54
  * @Description: 请描述该文件
  */
 export { namespaceMap } from './element'
@@ -33,4 +33,20 @@ export function makeMap(str: string, expectsLowerCase?: boolean): (key: string) 
     map[list[i]] = true
   }
   return expectsLowerCase ? (val) => map[val.toLowerCase()] : (val) => map[val]
+}
+
+export function isObject(obj: unknown): obj is object {
+  return obj !== null && typeof obj === 'object'
+}
+
+/**
+ * Define a property.
+ */
+export function def(obj: Object, key: string, val: unknown, enumerable = false): void {
+  Object.defineProperty(obj, key, {
+    value: val,
+    enumerable: enumerable,
+    writable: true,
+    configurable: true
+  })
 }
