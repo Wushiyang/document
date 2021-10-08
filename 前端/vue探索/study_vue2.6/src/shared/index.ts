@@ -2,12 +2,14 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:53:53
- * @LastEditTime: 2021-09-29 12:10:54
+ * @LastEditTime: 2021-10-08 11:41:03
  * @Description: 请描述该文件
  */
 export { namespaceMap } from './element'
 export { generateComponentTrace, warn } from './debug'
 export { isOfType } from './type'
+
+export const SSR_ATTR = 'data-server-rendered'
 
 // export { isRegExp } from './type'
 

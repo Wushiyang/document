@@ -2,12 +2,12 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-09-29 18:00:37
+ * @LastEditTime: 2021-10-08 12:09:50
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
 import { VNode, cloneVNode, config, VNodeWithData } from '@/runtime-core'
-import { warn, isOfType, makeMap } from '@/shared'
+import { warn, isOfType, makeMap, SSR_ATTR } from '@/shared'
 import { registerRef } from './modules/ref'
 import { traverse } from '@/reactivity'
 
@@ -72,7 +72,7 @@ export const createPatchFunction = (backend: {
   }
 
   // 以elm创建基本VNode
-  function emptyNodeAt(elm): VNode {
+  function emptyNodeAt(elm: Element): VNode {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
 
@@ -117,7 +117,7 @@ export const createPatchFunction = (backend: {
   function createElm(
     vnode: VNode,
     insertedVnodeQueue: Array<unknown>,
-    parentElmOrUndef?: Element,
+    parentElmOrUndef?: Node,
     refElmOrUndef?: Node,
     nested = false,
     ownerArray?: Array<VNode>,
@@ -138,8 +138,9 @@ export const createPatchFunction = (backend: {
     if (createComponent(vnode, insertedVnodeQueue, parentElmOrUndef, refElmOrUndef)) {
       return
     }
+
+    if (!parentElmOrUndef) return
     const parentElm = parentElmOrUndef
-    if (!parentElm) return
 
     const data = vnode.data
     const children = vnode.children
@@ -187,7 +188,7 @@ export const createPatchFunction = (backend: {
   }
 
   // 创建组件
-  function createComponent(vnode: VNode, insertedVnodeQueue: Array<unknown>, parentElmOrUndef?: Element, refElmOrUndef?: Node) {
+  function createComponent(vnode: VNode, insertedVnodeQueue: Array<unknown>, parentElmOrUndef?: Node, refElmOrUndef?: Node) {
     const vnodeData = vnode.data
     if (vnodeData) {
       const isReactivated = vnode.componentInstance && vnodeData.keepAlive
@@ -462,7 +463,7 @@ export const createPatchFunction = (backend: {
         newStartVnode = newCh[++newStartIdx]
       } else {
         // 新前和旧节点数组对比，通用4种情况之外在旧节点数组能找到新前则patch或createElm后插入到旧前，找不到则createElm后插入到旧前，然后新前索引后推
-        if (!oldKeyToIdx) oldKeyToIdx = createKeyToOldIdx(<Array<VNode>>oldCh.filter((_) => !!_), oldStartIdx, oldEndIdx) // 如果旧节点数组key对索引函数不存在则创建
+        if (!oldKeyToIdx) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx) // 如果旧节点数组key对索引函数不存在则创建
         idxInOld = newStartVnode.key ? oldKeyToIdx[newStartVnode.key] : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx) //新前节点的key存在则在oldKeyToIdx里寻找在oldCh里的索引，否则在oldCh数组区间[oldStartIdx, oldEndIdx]里寻找新前节点的在oldCh数组里的索引
         if (!idxInOld) {
           // 新前在旧节点数组里不能找到的情况，则createElm后插入到旧前
@@ -523,8 +524,8 @@ export const createPatchFunction = (backend: {
     oldVnode: VNode,
     vnode: VNode,
     insertedVnodeQueue: Array<unknown>,
-    ownerArray: Array<VNode>,
-    index: number,
+    ownerArray?: Array<VNode>,
+    index?: number,
     removeOnly = false
   ): undefined {
     if (oldVnode === vnode) {
@@ -532,7 +533,7 @@ export const createPatchFunction = (backend: {
       return
     }
 
-    if (vnode.elm) {
+    if (vnode.elm && ownerArray && index) {
       // clone reused vnode
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
@@ -572,7 +573,7 @@ export const createPatchFunction = (backend: {
         data.hook && data.hook.update && data.hook.update(oldVnode, vnode)
       }
       if (!vnode.text) {
-        // 非文本节点
+        // 非文本节点或新vnode的text不存在旧vnode的text存在
         if (oldCh && ch) {
           // 1、新旧节点数组存在且不一样，更新子节点
           if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
@@ -587,10 +588,11 @@ export const createPatchFunction = (backend: {
           // 3、只有旧节点数组存在，移除
           removeVnodes(oldCh, 0, oldCh.length - 1)
         } else if (oldVnode.text) {
+          // 4、新节点文本节点不在旧节点存在
           nodeOps.setTextContent(elm, '')
         }
       } else if (oldVnode.text !== vnode.text) {
-        // 4、文本节点且新旧节点文本不一样，patch文本
+        // 5、文本节点且新旧节点文本不一样，patch文本
         nodeOps.setTextContent(elm, vnode.text)
       }
       // 触发钩子postpatch
@@ -727,27 +729,30 @@ export const createPatchFunction = (backend: {
     }
   }
 
-  return function patch(oldVnode: VNode, vnode: VNode, hydrating: boolean, removeOnly = false) {
+  return function patch(oldVnodeOrUndef?: VNode | Element, vnodeOrUndef?: VNode, hydrating = false, removeOnly = false) {
     // 老节点存在新节点不存在，触发销毁
-    if (!vnode) {
-      if (oldVnode) invokeDestroyHook(oldVnode)
+    if (!vnodeOrUndef) {
+      if (oldVnodeOrUndef instanceof VNode) invokeDestroyHook(oldVnodeOrUndef)
       return
     }
-
+    const vnode = vnodeOrUndef
     let isInitialPatch = false
     const insertedVnodeQueue = []
 
-    if (!oldVnode) {
+    if (!oldVnodeOrUndef) {
       // empty mount (likely as component), create new root element
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
-      const isRealElement = isDef(oldVnode.nodeType)
-      if (!isRealElement && sameVnode(oldVnode, vnode)) {
+      let oldVnode: VNode | Element
+      const isRealElement = oldVnodeOrUndef instanceof Node
+      if (!isRealElement && sameVnode(oldVnodeOrUndef, vnode)) {
+        oldVnode = oldVnodeOrUndef
         // patch existing root node
-        patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
+        patchVnode(oldVnode, vnode, insertedVnodeQueue, undefined, undefined, removeOnly)
       } else {
         if (isRealElement) {
+          oldVnode = oldVnodeOrUndef
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
@@ -755,7 +760,7 @@ export const createPatchFunction = (backend: {
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
           }
-          if (isTrue(hydrating)) {
+          if (hydrating) {
             if (hydrate(oldVnode, vnode, insertedVnodeQueue)) {
               invokeInsertHook(vnode, insertedVnodeQueue, true)
               return oldVnode
@@ -773,10 +778,10 @@ export const createPatchFunction = (backend: {
           // create an empty node and replace it
           oldVnode = emptyNodeAt(oldVnode)
         }
-
+        oldVnode = <VNode>oldVnodeOrUndef
         // replacing existing element
-        const oldElm = oldVnode.elm
-        const parentElm = nodeOps.parentNode(oldElm)
+        const oldElm: Node & { _leaveCb?: boolean } = <Node>oldVnode.elm
+        const parentElm = nodeOps.parentNode(oldElm) || undefined
 
         // create new node
         createElm(
@@ -785,44 +790,49 @@ export const createPatchFunction = (backend: {
           // extremely rare edge case: do not insert if old element is in a
           // leaving transition. Only happens when combining transition +
           // keep-alive + HOCs. (#4590)
-          oldElm._leaveCb ? null : parentElm,
-          nodeOps.nextSibling(oldElm)
+          oldElm._leaveCb ? undefined : parentElm,
+          nodeOps.nextSibling(oldElm) || undefined
         )
 
         // update parent placeholder node element, recursively
-        if (isDef(vnode.parent)) {
-          let ancestor = vnode.parent
+        if (vnode.parent) {
+          let ancestor: VNode | undefined = vnode.parent
           const patchable = isPatchable(vnode)
           while (ancestor) {
-            for (let i = 0; i < cbs.destroy.length; ++i) {
-              cbs.destroy[i](ancestor)
+            if (cbs.destroy) {
+              for (let i = 0; i < cbs.destroy.length; ++i) {
+                cbs.destroy[i](ancestor)
+              }
             }
             ancestor.elm = vnode.elm
             if (patchable) {
-              for (let i = 0; i < cbs.create.length; ++i) {
-                cbs.create[i](emptyNode, ancestor)
+              if (cbs.create) {
+                for (let i = 0; i < cbs.create.length; ++i) {
+                  cbs.create[i](emptyNode, ancestor)
+                }
               }
               // #6513
               // invoke insert hooks that may have been merged by create hooks.
               // e.g. for directives that uses the "inserted" hook.
-              const insert = ancestor.data.hook.insert
-              if (insert.merged) {
+              const insert: (((a: unknown, b?: unknown) => void) & { merged?: boolean; fns?: Array<() => void> }) | undefined =
+                ancestor && ancestor.data && ancestor.data.hook && ancestor.data.hook.insert
+              if (insert && insert.merged && insert.fns) {
                 // start at index 1 to avoid re-invoking component mounted hook
                 for (let i = 1; i < insert.fns.length; i++) {
                   insert.fns[i]()
                 }
               }
             } else {
-              registerRef(ancestor)
+              isOfType<VNodeWithData>(ancestor, 'data') && registerRef(ancestor)
             }
             ancestor = ancestor.parent
           }
         }
 
         // destroy old node
-        if (isDef(parentElm)) {
+        if (parentElm) {
           removeVnodes([oldVnode], 0, 0)
-        } else if (isDef(oldVnode.tag)) {
+        } else if (oldVnode.tag) {
           invokeDestroyHook(oldVnode)
         }
       }

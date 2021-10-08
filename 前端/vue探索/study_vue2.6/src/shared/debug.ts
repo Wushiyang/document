@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-09 16:38:42
- * @LastEditTime: 2021-09-24 11:38:27
+ * @LastEditTime: 2021-10-08 11:11:59
  * @Description: 请描述该文件
  */
 
@@ -10,14 +10,14 @@ import { config, Component } from '@/runtime-core'
 import { noop } from './index'
 export let generateComponentTrace: (vm: Component) => string | void = noop
 export let formatComponentName: (vm: Component, includeFile?: boolean) => string | void = noop
-export let warn: (msg: string, vm: Component) => void = noop
+export let warn: (msg: string, vm?: Component) => void = noop
 
 if (process.env.NODE_ENV !== 'production') {
   const hasConsole = typeof console !== 'undefined'
   const classifyRE = /(?:^|[-_])(\w)/g
   const classify = (str: string): string => str.replace(classifyRE, (c) => c.toUpperCase()).replace(/[-_]/g, '')
 
-  warn = (msg, vm) => {
+  warn = (msg, vm?) => {
     const trace = vm ? (<(vm: Component) => string>generateComponentTrace)(vm) : ''
 
     if (config.warnHandler) {
