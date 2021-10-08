@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:52
- * @LastEditTime: 2021-09-29 12:11:21
+ * @LastEditTime: 2021-10-08 15:16:42
  * @Description: 请描述该文件
  */
 
@@ -17,7 +17,7 @@ const seenObjects = new Set()
  * getters, so that every nested property inside the object
  * is collected as a "deep" dependency.
  */
-export function traverse(val: unknown) {
+export function traverse(val: unknown): void {
   _traverse(val, seenObjects)
   seenObjects.clear()
 }

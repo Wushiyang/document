@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:59
- * @LastEditTime: 2021-09-29 12:13:43
+ * @LastEditTime: 2021-10-08 15:15:39
  * @Description: 请描述该文件
  */
 
@@ -17,7 +17,7 @@ export class Observer {
 
   __ob__?: Observer
 
-  constructor(value: Object) {
+  constructor(value: Record<string, unknown>) {
     this.value = value
     def(value, '__ob__', this)
     this.dep = new Dep()

@@ -13,27 +13,48 @@ if (process.env.NODE_ENV !== 'production') ;
 const noop = () => {
 };
 
-const createBaseVNode = (tag, data, children, text, elm, context, componentOptions, asyncFactory) => {
-    const vn = {
-        isStatic: false,
-        isRootInsert: false,
-        isComment: false,
-        isCloned: false,
-        isOnce: false,
-        isAsyncPlaceholder: false
-    };
-    tag && (vn.tag = tag);
-    data && (vn.data = data);
-    children && (vn.children = children);
-    text && (vn.text = text);
-    elm && (vn.elm = elm);
-    context && (vn.context = context);
-    componentOptions && (vn.componentOptions = componentOptions);
-    asyncFactory && (vn.asyncFactory = asyncFactory);
-    return vn;
-};
+class VNode {
+    tag;
+    data;
+    children;
+    text;
+    elm;
+    ns;
+    context;
+    key;
+    componentOptions;
+    componentInstance;
+    parent;
+    isStatic;
+    isRootInsert;
+    isComment;
+    isCloned;
+    isOnce;
+    asyncFactory;
+    asyncMeta;
+    isAsyncPlaceholder;
+    fnContext;
+    fnOptions;
+    fnScopeId;
+    constructor(tag, data, children, text, elm, context, componentOptions, asyncFactory) {
+        this.isStatic = false;
+        this.isRootInsert = false;
+        this.isComment = false;
+        this.isCloned = false;
+        this.isOnce = false;
+        this.isAsyncPlaceholder = false;
+        tag && (this.tag = tag);
+        data && (this.data = data);
+        children && (this.children = children);
+        text && (this.text = text);
+        elm && (this.elm = elm);
+        context && (this.context = context);
+        componentOptions && (this.componentOptions = componentOptions);
+        asyncFactory && (this.asyncFactory = asyncFactory);
+    }
+}
 
-createBaseVNode('', {}, []);
+new VNode('', {}, []);
 
 const nodeOps = {
     createElement(tagName, vnode) {
@@ -80,5 +101,5 @@ const nodeOps = {
 };
 
 const div = document.createElement('div');
-const node = createBaseVNode(nodeOps.tagName(div).toLowerCase(), {}, [], undefined, div);
+const node = new VNode(nodeOps.tagName(div).toLowerCase(), {}, [], undefined, div);
 console.log(node);
