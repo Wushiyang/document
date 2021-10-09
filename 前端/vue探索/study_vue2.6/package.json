@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup --config rollup.config.ts",
     "watch": "rollup -w -c rollup.config.ts",
-    "test:unit": ""
+    "test:unit": "karma start test/unit/karma.unit.config.js"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +21,10 @@
     "jasmine-core": "^3.9.0",
     "karma": "^6.3.4",
     "karma-chrome-launcher": "^3.1.0",
+    "karma-firefox-launcher": "^2.1.1",
     "karma-jasmine": "^4.0.1",
+    "karma-safari-launcher": "^1.0.0",
+    "karma-typescript": "^5.5.2",
     "rollup": "^2.56.3",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",

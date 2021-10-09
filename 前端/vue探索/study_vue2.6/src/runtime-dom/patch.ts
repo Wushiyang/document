@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-10-08 12:09:50
+ * @LastEditTime: 2021-10-09 18:02:40
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
@@ -76,7 +76,7 @@ export const createPatchFunction = (backend: {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
 
-  // 创建计算内含节点的删除节点函数
+  // 创建运行了listeners次后删除节点的函数
   function createRmCb(childElm: Node, listeners?: number): { (): void; listeners: number } {
     const remove: { (): void; listeners: number } = () => {
       if (--remove.listeners === 0) {
@@ -200,14 +200,13 @@ export const createPatchFunction = (backend: {
       // it should've created a child instance and mounted it. the child
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
-      if (vnode.componentInstance && vnode.elm && parentElmOrUndef && refElmOrUndef) {
+      if (vnode.componentInstance && vnode.elm && parentElmOrUndef) {
         const parentElm = parentElmOrUndef
-        const refElm = refElmOrUndef
         initComponent(vnode, insertedVnodeQueue)
-        insert(parentElm, vnode.elm, refElm)
+        insert(parentElm, vnode.elm, refElmOrUndef)
         // 如果是keepAlive组件则首次唤醒
         if (isReactivated) {
-          reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
+          reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElmOrUndef)
         }
         return true
       }
@@ -241,7 +240,7 @@ export const createPatchFunction = (backend: {
   }
 
   // 重新唤醒组件，用于<keep-alive>组件的激活
-  function reactivateComponent(vnode: VNode, insertedVnodeQueue: Array<unknown>, parentElm: Node, refElm: Node) {
+  function reactivateComponent(vnode: VNode, insertedVnodeQueue: Array<unknown>, parentElm: Node, refElm?: Node) {
     let innerNode = vnode
     if (vnode.elm) {
       // 这块用于：因为内部节点的create钩子不会再次调用，重新激活的组件的过渡效果将不会触发
@@ -374,6 +373,7 @@ export const createPatchFunction = (backend: {
   }
 
   // 移除并触发移除hook
+  // TODO 计数干嘛用？
   function removeAndInvokeRemoveHook(vnode: VNode, rm?: { (): void; listeners: number }) {
     if (rm || vnode.data) {
       if (cbs.remove) {
@@ -600,7 +600,7 @@ export const createPatchFunction = (backend: {
     }
   }
 
-  function invokeInsertHook(vnode: VNode, queue, initial) {
+  function invokeInsertHook(vnode: VNode, queue, initial = false) {
     // delay insert hooks for component root nodes, invoke them after the
     // element is really inserted
     if (initial && vnode.parent) {
@@ -747,15 +747,19 @@ export const createPatchFunction = (backend: {
       let oldVnode: VNode | Element
       const isRealElement = oldVnodeOrUndef instanceof Node
       if (!isRealElement && sameVnode(oldVnodeOrUndef, vnode)) {
+        // 非真实元素则patch新旧节点
         oldVnode = oldVnodeOrUndef
         // patch existing root node
         patchVnode(oldVnode, vnode, insertedVnodeQueue, undefined, undefined, removeOnly)
       } else {
+        // 非patch的创建
+        // 是真实元素
         if (isRealElement) {
           oldVnode = oldVnodeOrUndef
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
+          // 元素节点并有服务端渲染标记则去掉标记并置hydrating为true进行下一步渲染
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
@@ -776,8 +780,10 @@ export const createPatchFunction = (backend: {
           }
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
+          // 将真实元素转为虚拟dom然后赋值给oldVnode，用于下面的操作
           oldVnode = emptyNodeAt(oldVnode)
         }
+        // 非真实元素处理
         oldVnode = <VNode>oldVnodeOrUndef
         // replacing existing element
         const oldElm: Node & { _leaveCb?: boolean } = <Node>oldVnode.elm
@@ -795,6 +801,7 @@ export const createPatchFunction = (backend: {
         )
 
         // update parent placeholder node element, recursively
+        // 递归将vnode的elm向vnode的parent的elm挂载用于合并
         if (vnode.parent) {
           let ancestor: VNode | undefined = vnode.parent
           const patchable = isPatchable(vnode)
@@ -816,6 +823,7 @@ export const createPatchFunction = (backend: {
               // e.g. for directives that uses the "inserted" hook.
               const insert: (((a: unknown, b?: unknown) => void) & { merged?: boolean; fns?: Array<() => void> }) | undefined =
                 ancestor && ancestor.data && ancestor.data.hook && ancestor.data.hook.insert
+              // 合并操作
               if (insert && insert.merged && insert.fns) {
                 // start at index 1 to avoid re-invoking component mounted hook
                 for (let i = 1; i < insert.fns.length; i++) {
