@@ -2,12 +2,15 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:53:53
- * @LastEditTime: 2021-10-08 15:17:32
+ * @LastEditTime: 2021-10-11 16:49:40
  * @Description: 请描述该文件
  */
-export { namespaceMap } from './element'
-export { generateComponentTrace, warn } from './debug'
-export { isOfType } from './type'
+export * from './element'
+export * from './debug'
+export * from './type'
+export * from './env'
+export * from './pref'
+export * from './options'
 
 export const SSR_ATTR = 'data-server-rendered'
 

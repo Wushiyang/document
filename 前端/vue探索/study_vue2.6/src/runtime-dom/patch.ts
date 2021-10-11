@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:15:44
- * @LastEditTime: 2021-10-09 18:02:40
+ * @LastEditTime: 2021-10-11 16:03:47
  * @Description: 请描述该文件
  */
 import { nodeOps } from '.'
@@ -39,7 +39,7 @@ function sameInputType(a: VNode, b: VNode): boolean {
 // 返回一个VNode数组的key到索引的映射对象
 function createKeyToOldIdx(children: Array<VNode | undefined>, beginIdx: number, endIdx: number): Record<string, number> {
   let i, key
-  const map = {}
+  const map: Record<string, number> = {}
   for (i = beginIdx; i < endIdx; i++) {
     const child = children[i]
     if (!child) continue
@@ -296,7 +296,7 @@ export const createPatchFunction = (backend: {
   }
 
   // 循环触发modules里的create钩子，如果传进来的vnode.data.hook也存在create钩子，则调用。
-  function invokeCreateHooks(vnode: VNode, insertedVnodeQueue) {
+  function invokeCreateHooks(vnode: VNode, insertedVnodeQueue: unknown[]) {
     if (cbs.create) {
       // 先触发模块的create钩子
       for (let i = 0; i < cbs.create.length; ++i) {
@@ -334,7 +334,7 @@ export const createPatchFunction = (backend: {
   }
 
   // 添加vnode
-  function addVnodes(parentElm: Element, refElm?: Element, vnodes: Array<VNode> = [], startIdx = 1, endIdx = 0, insertedVnodeQueue: Array<unknown> = []) {
+  function addVnodes(parentElm: Node, refElm?: Node, vnodes: Array<VNode> = [], startIdx = 1, endIdx = 0, insertedVnodeQueue: Array<unknown> = []) {
     for (; startIdx <= endIdx; ++startIdx) {
       createElm(vnodes[startIdx], insertedVnodeQueue, parentElm, refElm, false, vnodes, startIdx)
     }
@@ -487,7 +487,7 @@ export const createPatchFunction = (backend: {
     // 新旧节点对比后新节点数组或旧节点数组先对比结束
     if (oldStartIdx > oldEndIdx) {
       // 旧比新先结束则新数组更长，添加多出的新节点
-      refElm = !newCh[newEndIdx + 1] ? null : newCh[newEndIdx + 1].elm
+      refElm = !newCh[newEndIdx + 1] ? undefined : newCh[newEndIdx + 1].elm
       addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue)
     } else if (newStartIdx > newEndIdx) {
       // 新比旧先结束则旧数组更长，移除多出的旧节点
@@ -497,7 +497,7 @@ export const createPatchFunction = (backend: {
 
   // 检查是否创建了重复的key，并在内部建映射用于检索存在
   function checkDuplicateKeys(children: Array<VNode>) {
-    const seenKeys = {}
+    const seenKeys: Record<string, boolean> = {}
     for (let i = 0; i < children.length; i++) {
       const vnode = children[i]
       const key = vnode.key
@@ -600,14 +600,15 @@ export const createPatchFunction = (backend: {
     }
   }
 
-  function invokeInsertHook(vnode: VNode, queue, initial = false) {
+  function invokeInsertHook(vnode: VNode, queue: unknown[], initial = false) {
     // delay insert hooks for component root nodes, invoke them after the
     // element is really inserted
     if (initial && vnode.parent) {
       vnode.parent.data && (vnode.parent.data.pendingInsert = queue)
     } else {
       for (let i = 0; i < queue.length; ++i) {
-        queue[i].data.hook.insert(queue[i])
+        const item = queue[i]
+        item instanceof VNode && item.data && item.data.hook && item.data.hook.insert && item.data.hook.insert(item)
       }
     }
   }
@@ -737,7 +738,7 @@ export const createPatchFunction = (backend: {
     }
     const vnode = vnodeOrUndef
     let isInitialPatch = false
-    const insertedVnodeQueue = []
+    const insertedVnodeQueue: unknown[] = []
 
     if (!oldVnodeOrUndef) {
       // empty mount (likely as component), create new root element
