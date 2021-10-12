@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:26:37
- * @LastEditTime: 2021-10-11 12:02:28
+ * @LastEditTime: 2021-10-12 16:34:15
  * @Description: vue的配置
  */
 import { no } from '@/shared'
@@ -14,6 +14,7 @@ export type Config = {
   performance: boolean
   warnHandler: ((msg: string, vm?: Component, trace?: string) => void) | null
   ignoredElements: Array<string | RegExp>
+  keyCodes: { [key: string]: number | Array<number> }
   isUnknownElement: (x?: string) => boolean
 }
 
@@ -25,6 +26,7 @@ export const config: Config = {
    */
   performance: false,
   ignoredElements: [],
+  keyCodes: Object.create(null),
   warnHandler: null,
   isUnknownElement: no
 }

@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-09 16:38:42
- * @LastEditTime: 2021-10-08 11:11:59
+ * @LastEditTime: 2021-10-12 16:30:23
  * @Description: 请描述该文件
  */
 
@@ -49,8 +49,8 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   // 返回n个str的字符串
-  // ps: 比较特殊的重复字符创算法
-  const repeat = (str, n) => {
+  // ps: 比较特殊的重复字符算法
+  const repeat = (str: string, n: number) => {
     let res = ''
     while (n) {
       if (n % 2 === 1) res += str
