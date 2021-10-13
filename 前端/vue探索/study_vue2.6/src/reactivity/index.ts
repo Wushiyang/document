@@ -2,13 +2,14 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:59
- * @LastEditTime: 2021-10-08 15:15:39
+ * @LastEditTime: 2021-10-13 17:23:04
  * @Description: 请描述该文件
  */
 
 import { def } from '@/shared'
 import { traverse } from './traverse'
-import { Dep } from './dep'
+import { Dep, pushTarget, popTarget } from './dep'
+import { Watcher } from './watcher'
 
 export class Observer {
   value: unknown
@@ -24,4 +25,4 @@ export class Observer {
   }
 }
 
-export { traverse }
+export { traverse, Watcher, pushTarget, popTarget }

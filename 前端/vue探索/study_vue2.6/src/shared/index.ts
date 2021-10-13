@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:53:53
- * @LastEditTime: 2021-10-11 16:49:40
+ * @LastEditTime: 2021-10-13 17:28:26
  * @Description: 请描述该文件
  */
 export * from './element'
@@ -11,6 +11,7 @@ export * from './type'
 export * from './env'
 export * from './pref'
 export * from './options'
+export * from './error'
 
 export const SSR_ATTR = 'data-server-rendered'
 
@@ -40,8 +41,14 @@ export function makeMap(str: string, expectsLowerCase?: boolean): (key: string) 
   return expectsLowerCase ? (val) => map[val.toLowerCase()] : (val) => map[val]
 }
 
+const _toString = Object.prototype.toString
+
 export function isObject(obj: unknown): obj is Record<string, unknown> {
   return obj !== null && typeof obj === 'object'
+}
+
+export function isPlainObject(obj: unknown): boolean {
+  return _toString.call(obj) === '[object Object]'
 }
 
 /**

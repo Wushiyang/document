@@ -2,16 +2,16 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-12 16:22:39
- * @LastEditTime: 2021-10-12 17:16:13
+ * @LastEditTime: 2021-10-13 11:20:02
  * @Description: 请描述该文件
  */
 /* not type checking this file because flow doesn't play well with Proxy */
 
 import { config } from './config'
-import { warn, makeMap, isNative } from '@/shared'
+import { warn, makeMap, isNative, noop } from '@/shared'
 import { Component } from './index'
 
-let initProxy
+let initProxy: (vm: Component) => void = noop
 
 if (process.env.NODE_ENV !== 'production') {
   const allowedGlobals = makeMap(

@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:26:37
- * @LastEditTime: 2021-10-12 16:34:15
+ * @LastEditTime: 2021-10-13 17:35:49
  * @Description: vue的配置
  */
 import { no } from '@/shared'
@@ -12,7 +12,8 @@ export type Config = {
   optionMergeStrategies: Record<string, unknown>
   silent: boolean
   performance: boolean
-  warnHandler: ((msg: string, vm?: Component, trace?: string) => void) | null
+  errorHandler?: (err: Error, vm: Component, info: string) => void
+  warnHandler?: (msg: string, vm?: Component, trace?: string) => void
   ignoredElements: Array<string | RegExp>
   keyCodes: { [key: string]: number | Array<number> }
   isUnknownElement: (x?: string) => boolean
@@ -27,6 +28,5 @@ export const config: Config = {
   performance: false,
   ignoredElements: [],
   keyCodes: Object.create(null),
-  warnHandler: null,
   isUnknownElement: no
 }
