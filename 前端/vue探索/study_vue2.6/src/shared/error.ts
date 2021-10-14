@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-13 17:28:01
- * @LastEditTime: 2021-10-13 17:37:25
+ * @LastEditTime: 2021-10-14 09:00:52
  * @Description: 请描述该文件
  */
 import { warn, inBrowser } from './index'
@@ -24,7 +24,7 @@ export function handleError(err: Error, vm: any, info: string) {
               const capture = hooks[i].call(cur, err, vm, info) === false
               if (capture) return
             } catch (e) {
-              globalHandleError(e, cur, 'errorCaptured hook')
+              globalHandleError(<Error>e, cur, 'errorCaptured hook')
             }
           }
         }

@@ -2,12 +2,11 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-11 10:11:11
- * @LastEditTime: 2021-10-13 11:37:13
+ * @LastEditTime: 2021-10-14 18:15:30
  * @Description: 初始化vues
  */
-
-import { Component } from './index'
 import { mergeOptions } from '@/shared/index'
+import { Component } from './index'
 
 export function initInternalComponent(vm: Component, options: InternalComponentOptions) {
   const opts = (vm.$options = Object.create(vm.constructor.options))

@@ -29,6 +29,11 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+export interface StateMixin {
+  $set: Function
+  $del: Function
+}
+
 export function proxy(target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter() {
     return this[sourceKey][key]
