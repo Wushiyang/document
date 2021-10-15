@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-15 16:05:50
- * @LastEditTime: 2021-10-15 16:08:36
+ * @LastEditTime: 2021-10-15 21:34:34
  * @Description: 请描述该文件
  */
 import { def } from '@/shared'
@@ -14,7 +14,7 @@ const methodsToPatch = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 're
  */
 methodsToPatch.forEach(function (method) {
   // cache original method
-  const original = arrayProto[method]
+  const original: Function = arrayProto[method]
   def(arrayMethods, method, function mutator(...args) {
     const result = original.apply(this, args)
     const ob = this.__ob__
