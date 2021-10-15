@@ -2,11 +2,126 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-11 10:11:11
- * @LastEditTime: 2021-10-14 18:15:30
+ * @LastEditTime: 2021-10-15 10:44:17
  * @Description: 初始化vues
  */
-import { mergeOptions } from '@/shared/index'
+import { config } from './config'
+import { mark, measure, mergeOptions, formatComponentName, Constructor } from '@/shared/index'
 import { Component } from './index'
+import { initState } from './state'
+import { initEvents } from './events'
+import { initLifecycle, callHook } from './lifecycle'
+import { initRender } from './render'
+import { initInjections, initProvide } from './inject'
+import { initProxy } from './proxy'
+
+let uid = 0
+export function initMixin(Vue: Constructor<Component>) {
+  Vue.prototype._init = function (this: Component, options?: Record<string, unknown>) {
+    const vm = this
+    // a uid
+    vm._uid = uid++
+
+    let startTag, endTag
+    /* istanbul ignore if */
+    if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+      startTag = `vue-perf-start:${vm._uid}`
+      endTag = `vue-perf-end:${vm._uid}`
+      mark(startTag)
+    }
+
+    // a flag to avoid this being observed
+    vm._isVue = true
+    // merge options
+    if (options && options._isComponent) {
+      // optimize internal component instantiation
+      // since dynamic options merging is pretty slow, and none of the
+      // internal component options needs special treatment.
+      initInternalComponent(vm, options)
+    } else {
+      vm.$options = mergeOptions(resolveConstructorOptions(vm.constructor), options || {}, vm)
+    }
+    /* istanbul ignore else */
+    if (process.env.NODE_ENV !== 'production') {
+      initProxy(vm)
+    } else {
+      vm._renderProxy = vm
+    }
+    // expose real self
+    vm._self = vm
+    initLifecycle(vm)
+    initEvents(vm)
+    initRender(vm)
+    callHook(vm, 'beforeCreate')
+    initInjections(vm) // resolve injections before data/props
+    initState(vm)
+    initProvide(vm) // resolve provide after data/props
+    callHook(vm, 'created')
+
+    /* istanbul ignore if */
+    if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+      vm._name = <string>formatComponentName(vm, false)
+      mark(<string>endTag)
+      measure(`vue ${vm._name} init`, <string>startTag, <string>endTag)
+    }
+
+    if (vm.$options.el) {
+      vm.$mount(vm.$options.el)
+    }
+  }
+}
+// export function _init(this: Component, options: Record<string, unknown>): void {
+//   const vm = this
+//   // a uid
+//   vm._uid = uid++
+
+//   let startTag, endTag
+//   /* istanbul ignore if */
+//   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+//     startTag = `vue-perf-start:${vm._uid}`
+//     endTag = `vue-perf-end:${vm._uid}`
+//     mark(startTag)
+//   }
+
+//   // a flag to avoid this being observed
+//   vm._isVue = true
+//   // merge options
+//   if (options && options._isComponent) {
+//     // optimize internal component instantiation
+//     // since dynamic options merging is pretty slow, and none of the
+//     // internal component options needs special treatment.
+//     initInternalComponent(vm, options)
+//   } else {
+//     vm.$options = mergeOptions(resolveConstructorOptions(vm.constructor), options || {}, vm)
+//   }
+//   /* istanbul ignore else */
+//   if (process.env.NODE_ENV !== 'production') {
+//     initProxy(vm)
+//   } else {
+//     vm._renderProxy = vm
+//   }
+//   // expose real self
+//   vm._self = vm
+//   initLifecycle(vm)
+//   initEvents(vm)
+//   initRender(vm)
+//   callHook(vm, 'beforeCreate')
+//   initInjections(vm) // resolve injections before data/props
+//   initState(vm)
+//   initProvide(vm) // resolve provide after data/props
+//   callHook(vm, 'created')
+
+//   /* istanbul ignore if */
+//   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+//     vm._name = <string>formatComponentName(vm, false)
+//     mark(<string>endTag)
+//     measure(`vue ${vm._name} init`, <string>startTag, <string>endTag)
+//   }
+
+//   if (vm.$options.el) {
+//     vm.$mount && vm.$mount(vm.$options.el)
+//   }
+// }
 
 export function initInternalComponent(vm: Component, options: InternalComponentOptions) {
   const opts = (vm.$options = Object.create(vm.constructor.options))

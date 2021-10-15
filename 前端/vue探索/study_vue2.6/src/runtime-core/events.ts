@@ -1,7 +1,9 @@
 /* @flow */
 
-import { tip, toArray, hyphenate, formatComponentName, invokeWithErrorHandling } from '../util/index'
-import { updateListeners } from '../vdom/helpers/index'
+import { Constructor } from '@/shared'
+import { Component } from './index'
+// import { tip, toArray, hyphenate, formatComponentName, invokeWithErrorHandling } from '../util/index'
+// import { updateListeners } from '../vdom/helpers/index'
 
 export function initEvents(vm: Component) {
   vm._events = Object.create(null)
@@ -39,10 +41,10 @@ export function updateComponentListeners(vm: Component, listeners: Object, oldLi
   target = undefined
 }
 
-export function eventsMixin(Vue: Class<Component>) {
+export function eventsMixin(Vue: Constructor<Component>) {
   const hookRE = /^hook:/
-  Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
-    const vm: Component = this
+  Vue.prototype.$on = function (this: Component, event: string | Array<string>, fn: () => void): Component {
+    const vm = this
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
         vm.$on(event[i], fn)
@@ -58,8 +60,8 @@ export function eventsMixin(Vue: Class<Component>) {
     return vm
   }
 
-  Vue.prototype.$once = function (event: string, fn: Function): Component {
-    const vm: Component = this
+  Vue.prototype.$once = function (this: Component, event: string, fn: Function): Component {
+    const vm = this
     function on() {
       vm.$off(event, on)
       fn.apply(vm, arguments)
@@ -69,8 +71,8 @@ export function eventsMixin(Vue: Class<Component>) {
     return vm
   }
 
-  Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
-    const vm: Component = this
+  Vue.prototype.$off = function (this: Component, event?: string | Array<string>, fn?: Function): Component {
+    const vm = this
     // all
     if (!arguments.length) {
       vm._events = Object.create(null)
@@ -105,8 +107,8 @@ export function eventsMixin(Vue: Class<Component>) {
     return vm
   }
 
-  Vue.prototype.$emit = function (event: string): Component {
-    const vm: Component = this
+  Vue.prototype.$emit = function (this: Component, event: string): Component {
+    const vm = this
     if (process.env.NODE_ENV !== 'production') {
       const lowerCaseEvent = event.toLowerCase()
       if (lowerCaseEvent !== event && vm._events[lowerCaseEvent]) {

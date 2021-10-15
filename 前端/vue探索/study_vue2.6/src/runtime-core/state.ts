@@ -1,37 +1,33 @@
 /* @flow */
-
-import config from '../config'
-import Watcher from '../observer/watcher'
-import Dep, { pushTarget, popTarget } from '../observer/dep'
+// import Watcher from '../observer/watcher'
+// import Dep, { pushTarget, popTarget } from '../observer/dep'
+import { config } from './config'
+import { Constructor, isPlainObject, warn, handleError } from '@/shared'
+import { set, del, Watcher } from '@/reactivity'
+import { Component } from './index'
 import { isUpdatingChildComponent } from './lifecycle'
+// import { set, del, observe, defineReactive, toggleObserving } from '../observer/index'
 
-import { set, del, observe, defineReactive, toggleObserving } from '../observer/index'
-
-import {
-  warn,
-  bind,
-  noop,
-  hasOwn,
-  hyphenate,
-  isReserved,
-  handleError,
-  nativeWatch,
-  validateProp,
-  isPlainObject,
-  isServerRendering,
-  isReservedAttribute
-} from '../util/index'
+// import {
+//   warn,
+//   bind,
+//   noop,
+//   hasOwn,
+//   hyphenate,
+//   isReserved,
+//   handleError,
+//   nativeWatch,
+//   validateProp,
+//   isPlainObject,
+//   isServerRendering,
+//   isReservedAttribute
+// } from '../util/index'
 
 const sharedPropertyDefinition = {
   enumerable: true,
   configurable: true,
   get: noop,
   set: noop
-}
-
-export interface StateMixin {
-  $set: Function
-  $del: Function
 }
 
 export function proxy(target: Object, sourceKey: string, key: string) {
@@ -260,4 +256,56 @@ export function createWatcher(vm: Component, expOrFn: string | Function, handler
     handler = vm[handler]
   }
   return vm.$watch(expOrFn, handler, options)
+}
+
+export function stateMixin(Vue: Constructor<Component>) {
+  // flow somehow has problems with directly declared definition object
+  // when using Object.defineProperty, so we have to procedurally build up
+  // the object here.
+  const dataDef: { get?: () => Record<string, unknown>; set?: () => void } = {}
+  dataDef.get = function (this: Component) {
+    return this._data
+  }
+  const propsDef: { get?: () => Record<string, unknown>; set?: () => void } = {}
+  propsDef.get = function (this: Component) {
+    return this._props
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    dataDef.set = function (this: Component) {
+      warn('Avoid replacing instance root $data. ' + 'Use nested data properties instead.', this)
+    }
+    propsDef.set = function (this: Component) {
+      warn(`$props is readonly.`, this)
+    }
+  }
+  Object.defineProperty(Vue.prototype, '$data', dataDef)
+  Object.defineProperty(Vue.prototype, '$props', propsDef)
+
+  Vue.prototype.$set = set
+  Vue.prototype.$delete = del
+
+  Vue.prototype.$watch = function (
+    this: Component,
+    expOrFn: string | (() => void),
+    cb: (value: unknown) => void,
+    options?: Record<string, unknown>
+  ): () => void {
+    const vm = this
+    if (isPlainObject(cb)) {
+      return createWatcher(vm, expOrFn, cb, options)
+    }
+    options = options || {}
+    options.user = true
+    const watcher = new Watcher(vm, expOrFn, cb, options)
+    if (options.immediate) {
+      try {
+        cb.call(vm, watcher.value)
+      } catch (error) {
+        handleError(<Error>error, vm, `callback for immediate watcher "${watcher.expression}"`)
+      }
+    }
+    return function unwatchFn() {
+      watcher.teardown()
+    }
+  }
 }
