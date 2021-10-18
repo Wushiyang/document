@@ -2,20 +2,21 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-15 16:05:50
- * @LastEditTime: 2021-10-15 21:34:34
+ * @LastEditTime: 2021-10-18 09:11:56
  * @Description: 请描述该文件
  */
+import { Observer } from './index'
 import { def } from '@/shared'
 const arrayProto = Array.prototype
 export const arrayMethods = Object.create(arrayProto)
-const methodsToPatch = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']
+const methodsToPatch: Array<keyof Array<unknown>> = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']
 /**
  * Intercept mutating methods and emit events
  */
 methodsToPatch.forEach(function (method) {
   // cache original method
-  const original: Function = arrayProto[method]
-  def(arrayMethods, method, function mutator(...args) {
+  const original = arrayProto[method]
+  def(arrayMethods, method as string, function mutator(this: Observer, ...args: unknown[]) {
     const result = original.apply(this, args)
     const ob = this.__ob__
     let inserted
