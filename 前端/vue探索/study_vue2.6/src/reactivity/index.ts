@@ -2,11 +2,11 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:59
- * @LastEditTime: 2021-10-18 18:24:23
+ * @LastEditTime: 2021-10-19 17:25:40
  * @Description: 请描述该文件
  */
 
-import { def, hasProto, isDef, isObject, hasOwn, isServerRendering } from '@/shared'
+import { def, hasProto, isDef, isObject, hasOwn, isServerRendering, isPlainObject } from '@/shared'
 import { VNode } from '@/runtime-core'
 import { traverse } from './traverse'
 import { Dep, pushTarget, popTarget } from './dep'

@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-11 12:05:06
- * @LastEditTime: 2021-10-18 18:24:24
+ * @LastEditTime: 2021-10-19 17:25:23
  * @Description: 请描述该文件
  */
 export const inBrowser = typeof window !== 'undefined'
@@ -14,17 +14,18 @@ export const isNative = (Ctor: unknown): boolean => {
 
 // this needs to be lazy-evaled because vue may be required before
 // vue-server-renderer can set VUE_ENV
-let _isServer
+// let _isServer
 export const isServerRendering = () => {
-  if (_isServer === undefined) {
-    /* istanbul ignore if */
-    if (!inBrowser && !inWeex && typeof global !== 'undefined') {
-      // detect presence of vue-server-renderer and avoid
-      // Webpack shimming the process
-      _isServer = global['process'] && global['process'].env.VUE_ENV === 'server'
-    } else {
-      _isServer = false
-    }
-  }
-  return _isServer
+  // if (_isServer === undefined) {
+  //   /* istanbul ignore if */
+  //   if (!inBrowser && !inWeex && typeof global !== 'undefined') {
+  //     // detect presence of vue-server-renderer and avoid
+  //     // Webpack shimming the process
+  //     _isServer = global['process'] && global['process'].env.VUE_ENV === 'server'
+  //   } else {
+  //     _isServer = false
+  //   }
+  // }
+  // return _isServer
+  return false
 }
