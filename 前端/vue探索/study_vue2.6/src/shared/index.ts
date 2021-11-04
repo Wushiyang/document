@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:53:53
- * @LastEditTime: 2021-10-18 10:27:07
+ * @LastEditTime: 2021-11-04 17:43:11
  * @Description: 请描述该文件
  */
 export * from './element'
@@ -12,6 +12,7 @@ export * from './env'
 export * from './pref'
 export * from './options'
 export * from './error'
+export * from './lang'
 
 export const SSR_ATTR = 'data-server-rendered'
 

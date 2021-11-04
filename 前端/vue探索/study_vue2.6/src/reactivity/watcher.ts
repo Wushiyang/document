@@ -1,14 +1,21 @@
 /* @flow */
 
-import { warn, remove, isObject, parsePath, _Set as Set, handleError, noop } from '../util/index'
-
+import { warn, remove, isObject, parsePath, _Set handleError, noop } from '@/shared'
+import { Component } from '@/runtime-core'
 import { traverse } from './traverse'
 import { queueWatcher } from './scheduler'
-import Dep, { pushTarget, popTarget } from './dep'
-
-import type { SimpleSet } from '../util/index'
-
+import { Dep, pushTarget, popTarget } from './dep'
 let uid = 0
+
+export interface watcherOptions {
+  deep?: boolean
+  user?: boolean
+  lazy?: boolean
+  sync?: boolean
+  dirty?: boolean
+  active?: boolean
+  before?: Function
+}
 
 /**
  * A watcher parses an expression, collects dependencies,
@@ -28,14 +35,15 @@ export class Watcher {
   active: boolean
   deps: Array<Dep>
   newDeps: Array<Dep>
-  depIds: SimpleSet
-  newDepIds: SimpleSet
-  before: ?Function
+  depIds: Set<string | number>
+  newDepIds: Set<string | number>
+  before?: Function
   getter: Function
   value: any
 
-  constructor(vm: Component, expOrFn: string | Function, cb: Function, options?: ?Object, isRenderWatcher?: boolean) {
+  constructor(vm: Component, expOrFn: string | Function, cb: Function, options?: watcherOptions, isRenderWatcher = false) {
     this.vm = vm
+    // 如果是渲染watcher则附加上
     if (isRenderWatcher) {
       vm._watcher = this
     }
@@ -63,8 +71,10 @@ export class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
-      this.getter = parsePath(expOrFn)
-      if (!this.getter) {
+      const parsePathFn = parsePath(expOrFn)
+      if (parsePathFn) {
+        this.getter = parsePathFn
+      } else {
         this.getter = noop
         process.env.NODE_ENV !== 'production' &&
           warn(`Failed watching path: "${expOrFn}" ` + 'Watcher only accepts simple dot-delimited paths. ' + 'For full control, use a function instead.', vm)

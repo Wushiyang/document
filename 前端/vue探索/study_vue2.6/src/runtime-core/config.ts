@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:26:37
- * @LastEditTime: 2021-10-13 17:35:49
+ * @LastEditTime: 2021-10-27 11:48:52
  * @Description: vue的配置
  */
 import { no } from '@/shared'
@@ -17,6 +17,7 @@ export type Config = {
   ignoredElements: Array<string | RegExp>
   keyCodes: { [key: string]: number | Array<number> }
   isUnknownElement: (x?: string) => boolean
+  async: boolean
 }
 
 export const config: Config = {
@@ -28,5 +29,6 @@ export const config: Config = {
   performance: false,
   ignoredElements: [],
   keyCodes: Object.create(null),
-  isUnknownElement: no
+  isUnknownElement: no,
+  async: true
 }

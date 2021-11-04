@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:23:55
- * @LastEditTime: 2021-10-15 11:53:57
+ * @LastEditTime: 2021-11-04 16:44:54
  * @Description: 运行时核心
  */
 
@@ -63,8 +63,8 @@ class Component {
   _name?: string
   _events: Record<string, unknown> = Object.create(null)
   _hasHookEvent = false // TODO initEvents的初始化待搞懂
-  _watcher: Watcher
-  _watchers: Array<Watcher>
+  _watcher?: Watcher // 暂定是可能存在
+  _watchers: Array<Watcher> = []
   _isDestroyed = false
   _isBeingDestroyed = false
   _renderProxy?: Component | ProxyConstructor
