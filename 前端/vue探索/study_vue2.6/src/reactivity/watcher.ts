@@ -102,6 +102,7 @@ export class Watcher {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
       if (this.deep) {
+        // 循环读取子项，让子项的事件通道添加该订阅者
         traverse(value)
       }
       popTarget()
