@@ -2,15 +2,15 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:52
- * @LastEditTime: 2021-10-08 15:16:42
+ * @LastEditTime: 2021-11-05 17:38:48
  * @Description: 请描述该文件
  */
 
 import { VNode } from '@/runtime-core'
-import { isObject } from '@/shared'
+import { isObject, isOfType } from '@/shared'
 import { Observer } from '.'
 
-const seenObjects = new Set()
+const seenObjects = new Set<string | number>()
 
 /**
  * Recursively traverse an object to evoke all converted
@@ -22,13 +22,13 @@ export function traverse(val: unknown): void {
   seenObjects.clear()
 }
 
-function _traverse(val: unknown, seen: Set<unknown>) {
+function _traverse(val: unknown, seen: Set<string | number>) {
   let i, keys
   const isA = Array.isArray(val)
   if ((!isA && !isObject(val)) || Object.isFrozen(val) || val instanceof VNode) {
     return
   }
-  if (val instanceof Observer && val.__ob__) {
+  if (isOfType<{ __ob__: Observer }>(val, '__ob__')) {
     const depId = val.__ob__.dep.id
     if (seen.has(depId)) {
       return

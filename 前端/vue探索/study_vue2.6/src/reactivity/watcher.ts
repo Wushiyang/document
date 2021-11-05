@@ -1,6 +1,6 @@
 /* @flow */
 
-import { warn, remove, isObject, parsePath, _Set handleError, noop } from '@/shared'
+import { warn, remove, isObject, parsePath, _Set as Set, SimpleSet, handleError, noop } from '@/shared'
 import { Component } from '@/runtime-core'
 import { traverse } from './traverse'
 import { queueWatcher } from './scheduler'
@@ -33,13 +33,13 @@ export class Watcher {
   sync: boolean
   dirty: boolean
   active: boolean
-  deps: Array<Dep>
-  newDeps: Array<Dep>
-  depIds: Set<string | number>
-  newDepIds: Set<string | number>
+  deps: Array<Dep> // 关联的事件通道数组
+  newDeps: Array<Dep> // 新的关联的事件通道数组
+  depIds: SimpleSet // 关联的事件通道的id集合
+  newDepIds: SimpleSet // 新的关联的事件通道的id集合
   before?: Function
   getter: Function
-  value: any
+  value: unknown
 
   constructor(vm: Component, expOrFn: string | Function, cb: Function, options?: watcherOptions, isRenderWatcher = false) {
     this.vm = vm
@@ -84,7 +84,7 @@ export class Watcher {
   }
 
   /**
-   * Evaluate the getter, and re-collect dependencies.
+   * 返回被观察者的值并将此“订阅者”设为“当前订阅者”，调用被观察者的属性触发依赖收集
    */
   get() {
     pushTarget(this)
@@ -94,9 +94,9 @@ export class Watcher {
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
-        handleError(e, vm, `getter for watcher "${this.expression}"`)
+        handleError(<Error>e, vm, `getter for watcher "${this.expression}"`)
       } else {
-        throw e
+        throw <Error>e
       }
     } finally {
       // "touch" every property so they are all tracked as
@@ -111,7 +111,7 @@ export class Watcher {
   }
 
   /**
-   * Add a dependency to this directive.
+   * 添加关联事件通道
    */
   addDep(dep: Dep) {
     const id = dep.id
@@ -125,29 +125,29 @@ export class Watcher {
   }
 
   /**
-   * Clean up for dependency collection.
+   * 清除关联事件通道
    */
   cleanupDeps() {
     let i = this.deps.length
+    // 循环删除关联的事件中心
     while (i--) {
       const dep = this.deps[i]
       if (!this.newDepIds.has(dep.id)) {
         dep.removeSub(this)
       }
     }
-    let tmp = this.depIds
+    let tmpIds = this.depIds
     this.depIds = this.newDepIds
-    this.newDepIds = tmp
+    this.newDepIds = tmpIds
     this.newDepIds.clear()
-    tmp = this.deps
+    let tmps = this.deps
     this.deps = this.newDeps
-    this.newDeps = tmp
+    this.newDeps = tmps
     this.newDeps.length = 0
   }
 
   /**
-   * Subscriber interface.
-   * Will be called when a dependency changes.
+   * 更新订阅者
    */
   update() {
     /* istanbul ignore else */
@@ -161,8 +161,7 @@ export class Watcher {
   }
 
   /**
-   * Scheduler job interface.
-   * Will be called by the scheduler.
+   * 运行订阅回调
    */
   run() {
     if (this.active) {
@@ -182,7 +181,7 @@ export class Watcher {
           try {
             this.cb.call(this.vm, value, oldValue)
           } catch (e) {
-            handleError(e, this.vm, `callback for watcher "${this.expression}"`)
+            handleError(<Error>e, this.vm, `callback for watcher "${this.expression}"`)
           }
         } else {
           this.cb.call(this.vm, value, oldValue)
@@ -201,7 +200,7 @@ export class Watcher {
   }
 
   /**
-   * Depend on all deps collected by this watcher.
+   * 通知相关事件通道进行依赖收集
    */
   depend() {
     let i = this.deps.length
@@ -211,7 +210,7 @@ export class Watcher {
   }
 
   /**
-   * Remove self from all dependencies' subscriber list.
+   * 将该订阅者从关联事件通道里移除
    */
   teardown() {
     if (this.active) {

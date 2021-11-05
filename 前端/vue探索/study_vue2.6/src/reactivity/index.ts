@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:59
- * @LastEditTime: 2021-11-04 15:45:13
+ * @LastEditTime: 2021-11-05 16:28:54
  * @Description: 请描述该文件
  */
 
@@ -25,23 +25,21 @@ export function toggleObserving(value: boolean) {
 }
 
 /**
- * 观察代理被绑定到每个被观察对象上，一旦被绑定就会将被观察对象的属性转成getter和setter去收集依赖和分发更新
- * 所有属性可被观察，称为被观察者。
- * 被观察者有个可写可配置不可枚举的属性__ob__，该属性指向该被观察者的观察代理(Observer)。
- * value被观察者，dep依赖收集对象，Observer观察代理，watcher观察者
+ * “发布者”Observer被绑定到被观察对象上，将被观察对象的可枚举属性值转成getter和setter，管理被观察对象的可枚举属性的读取和赋值，使用事件通道dep去收集依赖和分发更新
+ * 所有属性可枚举将被监视，调用触发getter进行依赖收集。
+ * 被观察者有个可写可配置不可枚举的属性__ob__，该属性指向该被观察者的“发布者”(Observer)。
+ * value被观察者，dep事件通道，Observer“发布者”，watcher订阅者
  */
 class Observer {
   value: unknown
-  dep: Dep // 观察者代理通过该依赖收集对象来控制观察者
+  dep: Dep // “发布者”通过该事件通道来控制订阅者
   vmCount = 0 // 将该观察者作为根data的vue实例的数量
-
-  __ob__!: Observer
 
   constructor(value: Record<string, unknown> | Array<unknown>) {
     // 1、绑定__ob__
     this.value = value
-    this.dep = new Dep()
-    def(value, '__ob__', this)
+    this.dep = new Dep() // 被观察对象的事件通道，附加在“发布者”上
+    def(value, '__ob__', this) // value是被观察者，绑定“发布者”到被观察者上
     // 2、数组拦截操作并
     if (Array.isArray(value)) {
       // 替换函数操作
@@ -126,7 +124,7 @@ export function observe(value: unknown, asRootData = false): Observer | undefine
  * 将一个对象的一个属性变为被可观察者
  */
 export function defineReactive(obj: Record<string, unknown>, key: string, val?: unknown, customSetter?: Function, shallow = false) {
-  const dep = new Dep()
+  const dep = new Dep() // 该属性的事件通道
 
   // 如果该属性不可配置则返回
   const property = Object.getOwnPropertyDescriptor(obj, key)
@@ -148,11 +146,12 @@ export function defineReactive(obj: Record<string, unknown>, key: string, val?: 
     enumerable: true,
     configurable: true,
     get: function reactiveGetter() {
-      // 属性存在getter则调用原getter
+      // 属性存在getter则调用原getter，不存在则读取value。
       const value = getter ? getter.call(obj) : val
-      // 待查看...
+      // 如果“当前订阅者”存在则进行依赖收集，一般初始化组件时会将当前组件watcher设为“当前订阅者”
       if (Dep.target) {
-        dep.depend()
+        dep.depend() // “当前订阅者”收集该依赖
+        // 子项存在则进行子项的依赖收集，如果该属性是数组，则还要进行数组子项的依赖收集
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
@@ -167,9 +166,8 @@ export function defineReactive(obj: Record<string, unknown>, key: string, val?: 
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
-      }
-      /* eslint-enable no-self-compare */
-      if (process.env.NODE_ENV !== 'production' && customSetter) {
+      } // 可能用作测试
+      /* eslint-enable no-self-compare */ if (process.env.NODE_ENV !== 'production' && customSetter) {
         customSetter()
       }
       // #7981: for accessor properties without setter
@@ -179,15 +177,14 @@ export function defineReactive(obj: Record<string, unknown>, key: string, val?: 
       } else {
         val = newVal
       }
-      childOb = !shallow && observe(newVal)
-      dep.notify()
+      childOb = !shallow && observe(newVal) // 新值如果是对象则添加“发布者”监视
+      dep.notify() // 依赖分发更新
     }
   })
 }
 
 /**
- * Collect dependencies on array elements when the array is touched, since
- * we cannot intercept array element access like property getters.
+ * 数组子项的依赖收集
  */
 function dependArray(value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {

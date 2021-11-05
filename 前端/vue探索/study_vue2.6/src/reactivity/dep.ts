@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:47:42
- * @LastEditTime: 2021-11-04 16:08:27
+ * @LastEditTime: 2021-11-05 15:57:56
  * @Description: 请描述该文件
  */
 import { remove } from '@/shared'
@@ -11,12 +11,12 @@ import { Watcher } from './watcher'
 let uid = 0
 
 /**
- * 依赖对象，用于收集被观察者的观察者watcher
+ * 事件通道，用于控制订阅者watcher
  */
 export class Dep {
-  static target?: Watcher // 当前订阅者
+  static target?: Watcher // “当前订阅者”
   id: number
-  subs: Array<Watcher> // 控制的观察者的数组，订阅者数组，这里的订阅者是观察者watcher
+  subs: Array<Watcher> // 订阅者数组
 
   constructor() {
     this.id = uid++
@@ -24,21 +24,21 @@ export class Dep {
   }
 
   /**
-   * 添加控制的观察者
+   * 添加控制的订阅者
    */
   addSub(sub: Watcher) {
     this.subs.push(sub)
   }
 
   /**
-   * 移除控制的观察者
+   * 移除控制的订阅者
    */
   removeSub(sub: Watcher) {
     remove(this.subs, sub)
   }
 
   /**
-   * 收集依赖
+   * 收集：收集依赖
    */
   depend() {
     if (Dep.target) {
@@ -47,7 +47,7 @@ export class Dep {
   }
 
   /**
-   * 通知订阅者/订阅被观察者的观察者更新
+   * 分发：通知订阅者更新
    */
   notify() {
     // 稳定订阅者数组

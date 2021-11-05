@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-11 12:05:06
- * @LastEditTime: 2021-10-19 17:25:23
+ * @LastEditTime: 2021-11-05 10:18:42
  * @Description: 请描述该文件
  */
 export const inBrowser = typeof window !== 'undefined'
@@ -29,3 +29,38 @@ export const isServerRendering = () => {
   // return _isServer
   return false
 }
+
+export interface SimpleSetConstructor<T = string | number> {
+  new <T = unknown>(values?: readonly T[] | null): SimpleSet
+}
+
+export interface SimpleSet {
+  has(key: string | number): boolean
+  add(key: string | number): void
+  clear(): void
+}
+
+let _Set: SimpleSetConstructor
+if (typeof Set !== 'undefined' && isNative(Set)) {
+  // use native Set when available.
+  _Set = Set
+} else {
+  // a non-standard Set polyfill that only works with primitive keys.
+  _Set = class Set implements SimpleSet {
+    set: Record<string, unknown> = {}
+    constructor() {
+      this.set = Object.create(null)
+    }
+    has(key: string | number) {
+      return this.set[key] === true
+    }
+    add(key: string | number) {
+      this.set[key] = true
+    }
+    clear() {
+      this.set = Object.create(null)
+    }
+  }
+}
+
+export { _Set }
