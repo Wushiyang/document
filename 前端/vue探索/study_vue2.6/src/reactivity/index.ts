@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:59
- * @LastEditTime: 2021-11-05 16:28:54
+ * @LastEditTime: 2021-11-15 17:52:41
  * @Description: 请描述该文件
  */
 
@@ -153,7 +153,7 @@ export function defineReactive(obj: Record<string, unknown>, key: string, val?: 
         dep.depend() // “当前订阅者”收集该依赖
         // 子项存在则进行子项的依赖收集，如果该属性是数组，则还要进行数组子项的依赖收集
         if (childOb) {
-          childOb.dep.depend()
+          childOb.dep.depend() // 对象触发收集依赖其实并没有用，因为无法通过修改对象来触发setter（只能通过修改对象属性触发setter）来发布更新，这里可能只是为了记录这个对象被订阅了吧
           if (Array.isArray(value)) {
             dependArray(value)
           }

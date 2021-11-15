@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:23:55
- * @LastEditTime: 2021-11-04 16:44:54
+ * @LastEditTime: 2021-11-15 09:30:08
  * @Description: 运行时核心
  */
 
@@ -26,6 +26,9 @@ interface ComponentOptions {
   // DOM
   el?: Element | string
   abstract: boolean
+
+  // lifecycle
+  errorCaptured?: () => boolean | void
 
   // misc
   name?: string

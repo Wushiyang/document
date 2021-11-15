@@ -2,27 +2,28 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-13 17:28:01
- * @LastEditTime: 2021-10-14 09:00:52
+ * @LastEditTime: 2021-11-15 09:43:35
  * @Description: 请描述该文件
  */
 import { warn, inBrowser } from './index'
 import { pushTarget, popTarget } from '@/reactivity'
 import { Component, config } from '@/runtime-core'
 
-export function handleError(err: Error, vm: any, info: string) {
+export function handleError(err: Error, vm: Component, info: string) {
   // Deactivate deps tracking while processing error handler to avoid possible infinite rendering.
   // See: https://github.com/vuejs/vuex/issues/1505
   pushTarget()
   try {
     if (vm) {
-      let cur = vm
+      let cur: Component | undefined = vm
       while ((cur = cur.$parent)) {
         const hooks = cur.$options.errorCaptured
         if (hooks) {
           for (let i = 0; i < hooks.length; i++) {
             try {
-              const capture = hooks[i].call(cur, err, vm, info) === false
-              if (capture) return
+              // TODO 待研究
+              // const capture = hooks[i].call(cur, err, vm, info) === false
+              // if (capture) return
             } catch (e) {
               globalHandleError(<Error>e, cur, 'errorCaptured hook')
             }

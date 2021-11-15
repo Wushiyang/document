@@ -2,10 +2,15 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-10-11 12:05:06
- * @LastEditTime: 2021-11-05 10:18:42
+ * @LastEditTime: 2021-11-15 10:09:32
  * @Description: 请描述该文件
  */
 export const inBrowser = typeof window !== 'undefined'
+// export const inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform
+// export const weexPlatform = inWeex && WXEnvironment.platform.toLowerCase()
+export const UA = inBrowser && window.navigator.userAgent.toLowerCase()
+export const isIE = UA && /msie|trident/.test(UA)
+export const isIOS = UA && /iphone|ipad|ipod|ios/.test(UA) // (UA && /iphone|ipad|ipod|ios/.test(UA)) || (weexPlatform === 'ios')
 
 /* istanbul ignore next */
 export const isNative = (Ctor: unknown): boolean => {

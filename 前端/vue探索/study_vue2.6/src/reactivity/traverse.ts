@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-29 11:13:52
- * @LastEditTime: 2021-11-05 17:47:20
+ * @LastEditTime: 2021-11-09 15:41:11
  * @Description: 请描述该文件
  */
 
@@ -13,9 +13,7 @@ import { Observer } from '.'
 const seenObjects = new Set()
 
 /**
- * Recursively traverse an object to evoke all converted
- * getters, so that every nested property inside the object
- * is collected as a "deep" dependency.
+ *  递归的访问一个对象的所有属性，用于触发转化的getter，致使这个对象的嵌套属性进行依赖搜集
  */
 export function traverse(val: unknown): void {
   _traverse(val, seenObjects)
