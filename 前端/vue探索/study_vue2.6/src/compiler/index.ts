@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-11-17 10:25:24
- * @LastEditTime: 2021-11-17 18:00:19
+ * @LastEditTime: 2021-11-22 14:59:38
  * @Description: 请描述该文件
  */
 
@@ -10,8 +10,11 @@ import { parse } from './parser/index'
 import { optimize } from './optimizer'
 import { generate } from './codegen/index'
 import { createCompilerCreator } from './create-compiler'
+export * from './helpers'
+export * from './html-parser'
+export * from './parse/index'
 
-interface ModuleOptions {
+export interface ModuleOptions {
   // transform an AST node before any attributes are processed
   // returning an ASTElement from pre/transforms replaces the element
   preTransformNode: (el: ASTElement) => ASTElement | undefined
@@ -25,22 +28,22 @@ interface ModuleOptions {
   staticKeys?: Array<string> // AST properties to be considered static
 }
 
-interface CompilerOptions {
-  warn?: Function // allow customizing warning in different environments; e.g. node
+export interface CompilerOptions {
+  warn?: (msg: string) => void // allow customizing warning in different environments; e.g. node
   modules?: Array<ModuleOptions> // platform specific modules; e.g. style; class
   directives?: { [key: string]: Function } // platform specific directives
   staticKeys?: string // a list of AST properties to be considered static; for optimization
-  isUnaryTag?: (tag: string) => boolean | undefined // check if a tag is unary for the platform
-  canBeLeftOpenTag?: (tag: string) => boolean | undefined // check if a tag can be left opened
-  isReservedTag?: (tag: string) => boolean | undefined // check if a tag is a native for the platform
+  isUnaryTag?: (tag: string) => boolean // check if a tag is unary for the platform
+  canBeLeftOpenTag?: (tag: string) => boolean // check if a tag can be left opened
+  isReservedTag?: (tag: string) => boolean // check if a tag is a native for the platform
   preserveWhitespace?: boolean // preserve whitespace between elements? (Deprecated)
   whitespace?: 'preserve' | 'condense' // whitespace handling strategy
   optimize?: boolean // optimize static content?
 
   // web specific
   mustUseProp?: (tag: string, type?: string, name?: string) => boolean // check if an attribute should be bound as a property
-  isPreTag?: (attr: string) => boolean | undefined // check if a tag needs to preserve whitespace
-  getTagNamespace?: (tag: string) => string | undefined // check the namespace for a tag
+  isPreTag?: (attr: string) => boolean // check if a tag needs to preserve whitespace
+  getTagNamespace?: (tag: string) => string // check the namespace for a tag
   expectHTML?: boolean // only false for non-web builds
   isFromDOM?: boolean
   shouldDecodeTags?: boolean
@@ -77,7 +80,7 @@ interface ASTIfCondition {
 }
 type ASTIfConditions = Array<ASTIfCondition>
 
-interface ASTAttr {
+export interface ASTAttr {
   name: string
   value: unknown
   dynamic?: boolean
@@ -109,11 +112,11 @@ interface ASTElementHandler {
 
 type ASTElementHandlers = Record<string, ASTElementHandler | Array<ASTElementHandler>>
 
-interface ASTElement {
+export interface ASTElement {
   type: 1
   tag: string
   attrsList: Array<ASTAttr>
-  attrsMap: { [key: string]: ASTAttr }
+  attrsMap: { [key: string]: unknown }
   rawAttrsMap: { [key: string]: ASTAttr }
   parent?: ASTElement
   children: Array<ASTNode>
