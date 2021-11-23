@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-09-02 16:53:53
- * @LastEditTime: 2021-11-15 17:14:56
+ * @LastEditTime: 2021-11-23 17:08:27
  * @Description: 请描述该文件
  */
 export * from './element'
@@ -23,6 +23,23 @@ export const no: () => boolean = () => false
 
 export const noop: () => void = () => {
   // do nothing
+}
+
+// 检测有效key
+function isVaildKey<T>(key: unknown, obj: T): key is keyof T {
+  return (key as string) in obj
+}
+/**
+ * Mix properties into target object.
+ */
+export function extend(
+  to: Record<string | number | symbol, unknown>,
+  _from?: Record<string | number | symbol, unknown>
+): Record<string | number | symbol, unknown> {
+  for (const key in _from) {
+    to[key] = _from[key]
+  }
+  return to
 }
 
 export function remove<T = unknown>(arr: Array<T>, item: T): Array<T> | void {

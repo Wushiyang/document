@@ -2,7 +2,7 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-11-17 10:25:24
- * @LastEditTime: 2021-11-22 14:59:38
+ * @LastEditTime: 2021-11-23 15:55:52
  * @Description: 请描述该文件
  */
 
@@ -112,7 +112,14 @@ interface ASTElementHandler {
 
 type ASTElementHandlers = Record<string, ASTElementHandler | Array<ASTElementHandler>>
 
-export interface ASTElement {
+export interface ForParseResult {
+  for?: string
+  alias?: string
+  iterator1?: string
+  iterator2?: string
+}
+
+export interface ASTElement extends ForParseResult {
   type: 1
   tag: string
   attrsList: Array<ASTAttr>
@@ -159,12 +166,12 @@ export interface ASTElement {
 
   ifConditions?: ASTIfConditions
 
-  for?: string
   forProcessed?: boolean
   key?: string
-  alias?: string
-  iterator1?: string
-  iterator2?: string
+  // for?: string
+  // alias?: string
+  // iterator1?: string
+  // iterator2?: string
 
   staticClass?: string
   classBinding?: string

@@ -2,12 +2,12 @@
  * @Author: Wushiyang
  * @LastEditors: Wushiyang
  * @Date: 2021-11-22 08:58:19
- * @LastEditTime: 2021-11-22 17:46:28
+ * @LastEditTime: 2021-11-23 17:11:50
  * @Description: 将template编译成ast
  */
 
-import { no, isIE, isEdge, isServerRendering } from '@/shared/index'
-import { CompilerOptions, ASTElement, ASTAttr, baseWarn, pluckModuleFunction, parseHTML, getAndRemoveAttr } from '../index'
+import { no, isIE, isEdge, isServerRendering, extend } from '@/shared/index'
+import { CompilerOptions, ASTElement, ForParseResult, ASTAttr, baseWarn, pluckModuleFunction, parseHTML, getAndRemoveAttr } from '../index'
 
 
 export const forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/ // 检测v-for的格式
@@ -445,18 +445,12 @@ export function processFor(el: ASTElement) {
   if ((exp = getAndRemoveAttr(el, 'v-for')) && typeof exp === 'string') {
     const res = parseFor(exp)
     if (res) {
-      extend(el, res)
+      // el兼容res，这里通过转类型使用extend
+      extend(el as unknown as Record<string, unknown>, res as unknown as Record<string, unknown>)
     } else if (process.env.NODE_ENV !== 'production') {
       warn(`Invalid v-for expression: ${exp}`, el.rawAttrsMap['v-for'])
     }
   }
-}
-
-interface ForParseResult {
-  for: string
-  alias: string
-  iterator1?: string
-  iterator2?: string
 }
 
 // (value, name, index) in iterator
